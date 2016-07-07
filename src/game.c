@@ -1,0 +1,411 @@
+#include "game.h"
+#include <stdlib.h>
+#include <stdbool.h>
+
+static void ResetGame(game* ptr);
+static bool ActiveCollided(game* ptr); // Test if collided with borders or other blocks
+static void FreezeActive(game* ptr); // !_Frees active tetromino partly_!
+static int  ClearFilledRows(game* ptr, unsigned y, unsigned h);
+static bool IsRowFull(game_map* ptr, unsigned row);
+static bool ClearAndCollapse(game_map* ptr, unsigned row);
+
+//  For active tetromino
+static tetromino* TetrominoNew(tetromino_shape shape, unsigned x);
+static int TetrominoMove(game* ptr, player_input dir);
+static int TetrominoRotate(game* ptr);
+static void TetrominoFree(tetromino* ptr);
+
+game* Initialize(unsigned width, unsigned height) {
+    if (width == 0 || height == 0) return NULL;
+    game* ptrGame = (game*)malloc(sizeof(game));
+
+    //  Allocate memory for blockmask and initialize it 0
+    ptrGame->map.blockMask = (block**)calloc(width*height, sizeof(block*) * width*height);
+    ptrGame->map.width = width;
+    ptrGame->map.height = height;
+    ptrGame->active = NULL;
+
+    ResetGame(ptrGame);
+    return ptrGame;
+}
+
+int Update(game* ptr) {
+    if (!ptr) return -1;
+
+    int ret = 0;
+    //  Check if active tetromino hit bottom or tetromino below.
+    if (TetrominoMove(ptr, INPUT_DOWN)) {
+        int origoy = ptr->active->y;
+        FreezeActive(ptr);
+
+        //  Check rows, there can be blocks above origo
+        if (origoy < 2) {
+            origoy = 0;
+        } else {
+            origoy -= 2;
+        }
+        ret = ClearFilledRows(ptr, origoy, 5);
+
+        //  Create new tetromino
+        ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
+        if (ActiveCollided(ptr)) return -2; //   New tetromino already collided with something -> game over
+    }
+    return ret;
+}
+
+int ProcessInput(game* ptr, player_input input) {
+    if (!ptr) return -1;
+
+    tetromino* act = ptr->active;
+    if (!act) return 0;
+
+    switch (input) {
+        case INPUT_LEFT:
+        case INPUT_RIGHT: {
+            return TetrominoMove(ptr, input);
+        }
+        case INPUT_DOWN: return Update(ptr);
+        case INPUT_ROTATE: return TetrominoRotate(ptr);
+        case INPUT_SET: {} break;
+        default: break;
+    }
+    return 0;
+}
+
+void FreeGame(game* ptr) {
+    if (!ptr) return;
+
+    //  Free blockmask and active
+    if (ptr->active) TetrominoFree(ptr->active);
+
+    //  Free map
+    unsigned len = ptr->map.width * ptr->map.height;
+    for (unsigned i = 0; i < len; i++) {
+        block* temp = ptr->map.blockMask[i];
+        if(temp) {
+            free(temp);
+            temp = NULL;
+        }
+    }
+    free(ptr->map.blockMask);
+
+    //  Free game struct
+    free(ptr);
+}
+
+/*
+    Static functions
+*/
+
+void TetrominoFree(tetromino* ptr) {
+    if (ptr) {
+        for (int i = 0; i < 4; i++) {
+            if (ptr->blocks[i]) {   //  Free all blocks
+                free(ptr->blocks[i]);
+                ptr->blocks[i] = NULL;
+            }
+        }
+        free(ptr->blocks);  // Free allocated pointer array
+        free(ptr);  //  Free tetromino
+    }
+}
+
+/**
+    \brief Reset given game
+    \param ptr Pointer to game instance
+*/
+void ResetGame(game* ptr) {
+    if (ptr == NULL) return;
+    //  Reset map
+    unsigned len = ptr->map.width * ptr->map.height;
+    for (unsigned i = 0; i < len; i++) {
+        block* temp = ptr->map.blockMask[i];
+        if(temp) {
+            free(temp);
+            temp = NULL;
+        }
+    }
+    // Reset stats
+    game_stats* s = &(ptr->stats);
+    s->score  = 0;
+    s->rows   = 0;
+
+    // Other
+    if (ptr->active) {
+        TetrominoFree(ptr->active);
+    }
+    ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
+}
+
+/**
+    \brief Check if active tetromino has collided with something.
+    \param ptr Pointer to game object
+    \return If collided with something true. Otherwise false
+*/
+bool ActiveCollided(game* ptr) {
+    tetromino* act = ptr->active;
+
+    //  If active tetromino exists
+    if (act) {
+        unsigned w = ptr->map.width,
+                 h = ptr->map.height;
+
+        //  Check collisions for every block of tetromino.
+        unsigned tx = act->x,
+                 ty = act->y;
+        for (int i = 0; i < 4; i++) {
+            block* cur = act->blocks[i];
+            unsigned x = cur->x+tx;
+            unsigned y = cur->y+ty;
+            if (x < 0 || x >= w) return true; // To left or right border
+            if (y < 0 || y >= h) return true; // To bottom or top
+
+            //  Check collision to other blocks
+            unsigned pos = y*w + x;
+            if (ptr->map.blockMask[pos]) return true;
+        }
+     }
+     //  If no collision
+     return false;
+}
+
+/**
+    \brief Updates active tetromino to game map
+    \param ptr Pointer to game
+
+    \warning Doesn't free allocated blocks. Only container struct.
+*/
+void FreezeActive(game* ptr) {
+    tetromino* t = ptr->active;
+    for (unsigned i = 0; i < 4; i++) {
+        unsigned pos = (t->y+t->blocks[i]->y)* ptr->map.width + t->blocks[i]->x + t->x;
+        ptr->map.blockMask[pos] = t->blocks[i];
+    }
+
+    //  Free active tetromino
+    free(t->blocks); // free allocated array
+    free(t);
+    ptr->active = NULL;
+}
+
+/**
+    \brief Clears filled rows
+    \param ptr Pointer to game instance
+    \param y Row where to start
+    \param h How many rows are checked
+    \return Count of cleared rows
+*/
+int ClearFilledRows(game* ptr, unsigned y, unsigned h) {
+    unsigned count = 0;
+    unsigned pos = y+h;
+    if (pos > ptr->map.height) pos = ptr->map.height;
+
+    for (unsigned i = 0; i < h; i++) {
+        if (IsRowFull(&(ptr->map), pos)) {
+            ClearAndCollapse(&(ptr->map), pos);
+            count++;
+        } else if (pos > 0) {
+            pos--;
+        }
+    }
+    return count;
+}
+
+/**
+    \brief Checks given row
+    \param ptr Pointer to map
+    \param row Row to CheckRow
+    \return True if row is complete
+*/
+bool IsRowFull(game_map* ptr, unsigned row) {
+    if (ptr == NULL) return false;
+
+    unsigned pos = row*ptr->width;
+    for (unsigned i = 0; i < ptr->width; i++) {
+        if (!ptr->blockMask[pos+i]) return false;
+    }
+    return true;
+}
+
+/**
+    \brief Clear given row and drop above
+    \param ptr Pointer to map
+    \param row Row to clear
+    \return True if rows were dropped
+*/
+bool ClearAndCollapse(game_map* ptr, unsigned row) {
+    if (ptr == NULL) return false;
+
+    //  Clear row
+    bool collapsed = false;
+    unsigned pos = row*ptr->width;
+    for (unsigned i = 0; i < ptr->width; i++) {
+        if (ptr->blockMask[pos+i]) {
+            free(ptr->blockMask[pos+i]);    // Free blocks
+            ptr->blockMask[pos+i] = NULL;   // Pointer to null
+        }
+    }
+
+    //  Drop lines above 1 block down
+    while (row > 0) {
+        row--;
+        bool line = false;
+        unsigned pos = row*ptr->width;
+        for (unsigned i = 0; i < ptr->width; i++) {
+            if (ptr->blockMask[pos+i]) {
+                ptr->blockMask[pos+i+ptr->width] = ptr->blockMask[pos+i];
+                ptr->blockMask[pos+i] = NULL;
+                line = true;
+            }
+        }
+        //  If no line was dropped break from loop
+        if (line == false) break;
+        else collapsed = true;
+    }
+
+    return collapsed;
+}
+
+/**
+    \brief Move active tetromino to given direction. If block collides with something move tetromino back to its original location.
+    \param ptr Pointer to the game instance
+    \param dir Direction where to move
+*/
+int TetrominoMove(game* ptr, player_input dir) {
+    int d = 1;
+
+    if (dir == INPUT_DOWN) {    //  If we want to move it down
+        //  Move tetromino
+        ptr->active->y += d;
+
+        //  Revert move if collided and return 1
+        if (ActiveCollided(ptr)) {
+            d = -d;
+            ptr->active->y += d;
+            return 1;
+        }
+    } else {
+        if (dir == INPUT_LEFT) d = -1;
+        //  Move tetromino
+        ptr->active->x += d;
+
+        //  Revert move if collided and return 1
+        if (ActiveCollided(ptr)) {
+            d = -d;
+            ptr->active->x += d;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+    \brief Rotate tetromino clockwise
+    \param Pointer to game instance
+    \return 0 on success
+*/
+int TetrominoRotate(game* ptr) {
+    if (ptr->active->shape == SHAPE_O) {
+        return 0;
+    } else {
+        //  Rotate clockwise
+        for (unsigned i = 0; i < 4; i++) {
+            block* cur = ptr->active->blocks[i];
+            unsigned tmp = cur->x;
+            cur->x = -cur->y;
+            cur->y = tmp;
+        }
+        if (ActiveCollided(ptr)) {
+            //  Rotate anti-clockwise
+            for (unsigned i = 0; i < 4; i++) {
+                block* cur = ptr->active->blocks[i];
+                unsigned tmp = -cur->x;
+                cur->x = cur->y;
+                cur->y = tmp;
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+    \brief Allocates and initializes new tetromino
+    \param shape Shape of the new tetromino
+    \param x Position in game where placed
+    \return Pointer to new tetromino
+*/
+tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
+    tetromino* ret = (tetromino*)malloc(sizeof(tetromino));
+    if (!ret) return NULL;
+
+    ret->blocks = (block**)malloc(sizeof(block*)*4);
+    if (!ret->blocks) {
+        free(ret);
+        return NULL;
+    }
+
+    ret->x = x-1;
+    ret->y = 0;
+    ret->shape = shape;
+    ret->count = 0;
+
+    for (int i = 0; i < 4; i++) {
+        ret->blocks[i] = (block*)malloc(sizeof(block));
+        ret->blocks[i]->x = 0;
+        ret->blocks[i]->y = 0;
+        ret->blocks[i]->symbol = 0;
+    }
+
+    //  Order blocks according to shape
+    switch (shape) {
+        case SHAPE_O: {
+            ret->blocks[1]->x = 1;
+            ret->blocks[2]->y = 1;
+            ret->blocks[3]->x = 1;
+            ret->blocks[3]->y = 1;
+        } break;
+        case SHAPE_I: {
+            ret->blocks[1]->x = -1;
+            ret->blocks[2]->x = 1;
+            ret->blocks[3]->x = 2;
+        } break;
+        case SHAPE_T: {
+            ret->blocks[1]->y = -1;
+            ret->blocks[2]->x = 1;
+            ret->blocks[3]->x = -1;
+            ret->y = 1;
+        } break;
+        case SHAPE_L: {
+            ret->blocks[1]->x = -1;
+            ret->blocks[2]->x = 1;
+            ret->blocks[3]->x = 1;
+            ret->blocks[3]->y = -1;
+            ret->y = 1;
+        } break;
+        case SHAPE_J: {
+            ret->blocks[1]->x = -1;
+            ret->blocks[2]->x = 1;
+            ret->blocks[3]->x = -1;
+            ret->blocks[3]->y = -1;
+            ret->y = 1;
+        } break;
+        case SHAPE_S: {
+            ret->blocks[1]->x = -1;
+            ret->blocks[2]->y = -1;
+            ret->blocks[3]->x = 1;
+            ret->blocks[3]->y = -1;
+            ret->y = 1;
+        } break;
+        case SHAPE_Z: {
+            ret->blocks[1]->x = 1;
+            ret->blocks[2]->y = -1;
+            ret->blocks[3]->x = -1;
+            ret->blocks[3]->y = -1;
+            ret->y = 1;
+        } break;
+        default: break; // Shouldn't happen
+    }
+
+    return ret;
+}
