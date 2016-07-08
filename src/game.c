@@ -44,7 +44,24 @@ int Update(game* ptr) {
         } else {
             origoy -= 2;
         }
+
         ret = ClearFilledRows(ptr, origoy, 5);
+
+        game_info* s = &ptr->info;
+        if (ret > 0) {
+            s->score += ret*50*(s->level+1) + (s->combo*10*(s->level+1));
+            s->combo++;
+
+            //  Add rows to counter and to level progress
+            s->rows += ret;
+            s->rowsToNextLevel -= ret;
+            while (s->rowsToNextLevel <= 0) {
+                s->level += 1;
+                s->rowsToNextLevel += (s->level)*3;
+            }
+        } else {
+            s->combo = 0;
+        }
 
         //  Create new tetromino
         ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
@@ -126,9 +143,12 @@ void ResetGame(game* ptr) {
         }
     }
     // Reset stats
-    game_stats* s = &(ptr->stats);
+    game_info* s = &(ptr->info);
     s->score  = 0;
     s->rows   = 0;
+    s->level  = 0;
+    s->combo  = 0;
+    s->rowsToNextLevel  = 0;
 
     // Other
     if (ptr->active) {

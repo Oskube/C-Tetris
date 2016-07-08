@@ -8,6 +8,7 @@
 #define MAP_HEIGHT 20
 
 static void DrawMap(game* src, WINDOW* dst);
+static void DrawInfo(game* src, WINDOW* dst);
 
 int MainCurses() {
     WINDOW* win = initscr();
@@ -16,6 +17,10 @@ int MainCurses() {
         fprintf(stderr, "CURSES: Can't initialize screen. Returning\n");
         return -1;
     }
+
+    unsigned winCols = 0;
+    unsigned winRows = 0;
+    getmaxyx(win, winRows, winCols);
 
     cbreak();   // Disable line buffering
     noecho();   // Don't show user input
@@ -29,6 +34,16 @@ int MainCurses() {
     //  Initialize map window
     WINDOW* map = subwin(win, MAP_HEIGHT+2, MAP_WIDTH+2, 1, 2);
     wborder(map, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    //  Sub window for stats and other info
+    WINDOW* stats = subwin(win, winRows-2, winCols-MAP_WIDTH-8, 1, MAP_WIDTH+6);
+    wborder(stats, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    if (!stats || !map) {
+        fprintf(stderr, "CURSES: Subwindow creation failed.");
+        endwin();
+        return -2;
+    }
 
     game* gme = Initialize(MAP_WIDTH, MAP_HEIGHT);
 
@@ -47,7 +62,9 @@ int MainCurses() {
 
         //  TODO: Refresh only when something has changed
         DrawMap(gme, map);
+        DrawInfo(gme, stats);
         touchwin(win);  // Update game map
+        // wrefresh(stats);
         // wrefresh(map);
         // refresh(); //   Update screen
     }
@@ -92,4 +109,10 @@ void DrawMap(game* src, WINDOW* dst) {
     } else {
         mvaddch(0, 0, 'A');
     }
+}
+
+static void DrawInfo(game* src, WINDOW* dst) {
+    game_info* s = &src->info;
+    mvwprintw(dst, 1, 2, "Level: %d (%d)", s->level, s->rowsToNextLevel);
+    mvwprintw(dst, 2, 2, "Score: %d", s->score);
 }

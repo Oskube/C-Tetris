@@ -56,19 +56,23 @@ typedef struct {
 } game_map;
 
 /**
-    \brief A structure for player statistics
+    \brief A structure that contains game events and other info.
 */
 typedef struct {
     unsigned score; /**< Player scores */
     unsigned rows;  /**< Number of rows destroyed */
-} game_stats;
+
+    unsigned level; /**< Current level */
+    unsigned combo; /**< Current combo */
+    int rowsToNextLevel; /**< Rows to clear until next level */
+} game_info;
 
 /**
     \brief A structure that contains everything what a game session needs.
 */
 typedef struct {
-    game_map map;       /**< A matrix where tetrominos land */
-    game_stats stats;   /**< Game statistics*/
+    game_map   map;     /**< A matrix where tetrominos land */
+    game_info  info;    /**< Game statistics */
     tetromino* active;  /**< A pointer to the active user controlled tetromino */
 } game;
 
