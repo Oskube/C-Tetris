@@ -37,7 +37,6 @@ int MainCurses() {
 
     //  Sub window for stats and other info
     WINDOW* stats = subwin(win, winRows-2, winCols-MAP_WIDTH-8, 1, MAP_WIDTH+6);
-    wborder(stats, 0, 0, 0, 0, 0, 0, 0, 0);
 
     if (!stats || !map) {
         fprintf(stderr, "CURSES: Subwindow creation failed.");
@@ -114,6 +113,9 @@ void DrawMap(game* src, WINDOW* dst) {
 
 static void DrawInfo(game* src, WINDOW* dst) {
     game_info* s = &src->info;
+    werase(dst);
+    wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
+    
     mvwprintw(dst, 1, 2, "Level: %d (%d)", s->level, s->rowsToNextLevel);
     mvwprintw(dst, 2, 2, "Score: %d", s->score);
 }
