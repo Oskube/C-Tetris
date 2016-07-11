@@ -68,6 +68,7 @@ typedef struct {
     unsigned combo; /**< Current combo */
     int rowsToNextLevel; /**< Rows to clear until next level */
 
+    int ended;    /**< Tells if game has ended */
     clock_t nextUpdate; /**< Time of next update */
 } game_info;
 

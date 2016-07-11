@@ -40,6 +40,8 @@ int Update(game* ptr) {
 
     int ret = 0;
 
+    if (ptr->info.ended) return -2;
+
     //  Check if the timer has expired.
     if (ptr->info.nextUpdate - clock() > 0) return ret;
 
@@ -75,7 +77,10 @@ int Update(game* ptr) {
 
         //  Create new tetromino
         ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
-        if (ActiveCollided(ptr)) return -2; //   New tetromino already collided with something -> game over
+        if (ActiveCollided(ptr)) {
+            s->ended = 1;
+            return -2; //   New tetromino already collided with something -> game over
+        }
     }
 
     //  Set time of next update
