@@ -61,6 +61,7 @@ int MainCurses() {
         }
 
         //  TODO: Refresh only when something has changed
+        Update(gme);
         DrawMap(gme, map);
         DrawInfo(gme, stats);
         touchwin(win);  // Update game map

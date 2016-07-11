@@ -1,8 +1,14 @@
 #include "game.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
-static void ResetGame(game* ptr);
+#define MIN_DELAY_LEVEL 10
+#define MAX_DELAY 1.2f
+#define MIN_DELAY 0.15f
+
+#define SECTOCLOCK(F) F*CLOCKS_PER_SEC
+
 static bool ActiveCollided(game* ptr); // Test if collided with borders or other blocks
 static void FreezeActive(game* ptr); // !_Frees active tetromino partly_!
 static int  ClearFilledRows(game* ptr, unsigned y, unsigned h);
@@ -33,6 +39,10 @@ int Update(game* ptr) {
     if (!ptr) return -1;
 
     int ret = 0;
+
+    //  Check if the timer has expired.
+    if (ptr->info.nextUpdate - clock() > 0) return ret;
+
     //  Check if active tetromino hit bottom or tetromino below.
     if (TetrominoMove(ptr, INPUT_DOWN)) {
         int origoy = ptr->active->y;
@@ -67,6 +77,16 @@ int Update(game* ptr) {
         ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
         if (ActiveCollided(ptr)) return -2; //   New tetromino already collided with something -> game over
     }
+
+    //  Set time of next update
+    unsigned lvl = ptr->info.level;
+    if (lvl > MIN_DELAY_LEVEL) lvl = MIN_DELAY_LEVEL;
+
+    float step = (float)(MIN_DELAY_LEVEL - lvl) / MIN_DELAY_LEVEL * (MAX_DELAY-MIN_DELAY);
+    if (step < MIN_DELAY) step += MIN_DELAY;
+    else if (step > MAX_DELAY) step = MAX_DELAY;
+    ptr->info.nextUpdate = clock() + SECTOCLOCK(step);
+
     return ret;
 }
 
@@ -81,7 +101,7 @@ int ProcessInput(game* ptr, player_input input) {
         case INPUT_RIGHT: {
             return TetrominoMove(ptr, input);
         }
-        case INPUT_DOWN: return Update(ptr);
+        case INPUT_DOWN: return ptr->info.nextUpdate = 0;
         case INPUT_ROTATE: return TetrominoRotate(ptr);
         case INPUT_SET: {} break;
         default: break;
@@ -110,27 +130,6 @@ void FreeGame(game* ptr) {
     free(ptr);
 }
 
-/*
-    Static functions
-*/
-
-void TetrominoFree(tetromino* ptr) {
-    if (ptr) {
-        for (int i = 0; i < 4; i++) {
-            if (ptr->blocks[i]) {   //  Free all blocks
-                free(ptr->blocks[i]);
-                ptr->blocks[i] = NULL;
-            }
-        }
-        free(ptr->blocks);  // Free allocated pointer array
-        free(ptr);  //  Free tetromino
-    }
-}
-
-/**
-    \brief Reset given game
-    \param ptr Pointer to game instance
-*/
 void ResetGame(game* ptr) {
     if (ptr == NULL) return;
     //  Reset map
@@ -149,12 +148,30 @@ void ResetGame(game* ptr) {
     s->level  = 0;
     s->combo  = 0;
     s->rowsToNextLevel  = 0;
+    s->nextUpdate = clock() + SECTOCLOCK(1); //   Add small delay for 1st tetromino
 
     // Other
     if (ptr->active) {
         TetrominoFree(ptr->active);
     }
     ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
+}
+
+/*
+    Static functions
+*/
+
+void TetrominoFree(tetromino* ptr) {
+    if (ptr) {
+        for (int i = 0; i < 4; i++) {
+            if (ptr->blocks[i]) {   //  Free all blocks
+                free(ptr->blocks[i]);
+                ptr->blocks[i] = NULL;
+            }
+        }
+        free(ptr->blocks);  // Free allocated pointer array
+        free(ptr);  //  Free tetromino
+    }
 }
 
 /**

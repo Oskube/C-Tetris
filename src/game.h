@@ -1,3 +1,5 @@
+#include <time.h>
+
 /**
     \brief Enumerated type for different inputs which can be passed to game
 */
@@ -65,6 +67,8 @@ typedef struct {
     unsigned level; /**< Current level */
     unsigned combo; /**< Current combo */
     int rowsToNextLevel; /**< Rows to clear until next level */
+
+    clock_t nextUpdate; /**< Time of next update */
 } game_info;
 
 /**
@@ -106,3 +110,9 @@ extern int ProcessInput(game* ptr, player_input input);
     \param ptr Pointer to the game instance being freed
 */
 extern void FreeGame(game* ptr);
+
+/**
+    \brief Reset given game
+    \param ptr Pointer to game instance
+*/
+extern void ResetGame(game* ptr);
