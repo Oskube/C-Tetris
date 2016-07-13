@@ -2,6 +2,7 @@
     \brief Enum for each different randomiser functions
 */
 typedef enum {
+    RANDOMISER_TGM,
     RANDOMISER_BAG,
     RANDOMISER_MAX
 } randomiser_type;
@@ -27,3 +28,25 @@ extern unsigned RandomBagInit(void* bag);
     \return Shape of next tetromino
 */
 extern unsigned RandomBagNext(void* bag);
+
+/**
+    \brief Structure for a TGM randomiser
+*/
+typedef struct {
+    unsigned history[4];
+    unsigned max_tries;
+} randomiser_TGM_data;
+
+/**
+    \brief TGM randomiser initialize
+    Fills history with OZSZ
+    \param A pointer to the randomiser data
+    \return Shape of tetromino
+*/
+extern unsigned RandomTGMInit(void* data);
+/**
+    \brief Get next tetromino
+    \param A pointer to the randomiser data
+    \return Shape of next tetromino
+*/
+extern unsigned RandomTGMNext(void* data);

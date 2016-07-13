@@ -33,9 +33,9 @@ game* Initialize(unsigned width, unsigned height) {
     ptrGame->map.height = height;
     ptrGame->active = NULL;
 
-    ptrGame->info.randomiser_data = malloc(sizeof(randombag));
-    ptrGame->info.fnRandomiserNext = &RandomBagNext;
-    ptrGame->info.fnRandomiserInit = &RandomBagInit;
+    ptrGame->info.randomiser_data = malloc(sizeof(randomiser_TGM_data));
+    ptrGame->info.fnRandomiserNext = &RandomTGMNext;
+    ptrGame->info.fnRandomiserInit = &RandomTGMInit;
 
     ResetGame(ptrGame);
     return ptrGame;
