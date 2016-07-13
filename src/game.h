@@ -1,4 +1,5 @@
 #include <time.h>
+#include "game_randomisers.h"
 
 /**
     \brief Enumerated type for different inputs which can be passed to game
@@ -90,11 +91,12 @@ typedef struct {
     \brief Initalize new game instance.
     \param width The width of new game area
     \param height The height of new game area
+    \param randomiser Randomiser used in tetromino creation
     \return Pointer to new game instance
 
     \remark You must use FreeGame() to free allocated memory.
 */
-extern game* Initialize(unsigned width, unsigned height);
+extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser);
 
 /**
     \brief Process one step of game logic

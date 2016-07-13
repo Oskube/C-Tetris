@@ -1,5 +1,4 @@
 #include "game.h"
-#include "game_randomisers.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -10,6 +9,8 @@
 #define MIN_DELAY 0.15f
 
 #define SECTOCLOCK(F) F*CLOCKS_PER_SEC
+
+static void SetRandomiser(game* ptr, randomiser_type new_randomiser);
 
 static bool ActiveCollided(game* ptr); // Test if collided with borders or other blocks
 static void FreezeActive(game* ptr); // !_Frees active tetromino partly_!
@@ -23,7 +24,7 @@ static int TetrominoMove(game* ptr, player_input dir);
 static int TetrominoRotate(game* ptr);
 static void TetrominoFree(tetromino* ptr);
 
-game* Initialize(unsigned width, unsigned height) {
+game* Initialize(unsigned width, unsigned height, randomiser_type randomiser) {
     if (width == 0 || height == 0) return NULL;
     game* ptrGame = (game*)malloc(sizeof(game));
 
@@ -33,10 +34,8 @@ game* Initialize(unsigned width, unsigned height) {
     ptrGame->map.height = height;
     ptrGame->active = NULL;
 
-    // ptrGame->info.randomiser_data = malloc(sizeof(randomiser_TGM_data));
-    ptrGame->info.randomiser_data = NULL;
-    ptrGame->info.fnRandomiserNext = &RandomRandomInit;
-    ptrGame->info.fnRandomiserInit = &RandomRandomInit;
+    //  Randomiser setup
+    SetRandomiser(ptrGame, randomiser);
 
     ResetGame(ptrGame);
     return ptrGame;
@@ -178,6 +177,33 @@ void ResetGame(game* ptr) {
 /*
     Static functions
 */
+
+void SetRandomiser(game* ptr, randomiser_type new_randomiser) {
+    if (!ptr) return;
+
+    //  Free old randomiser data
+    game_info* nfo = &(ptr->info);
+    if (nfo->randomiser_data) free(nfo->randomiser_data);
+
+    switch (new_randomiser) {
+        case RANDOMISER_BAG: {
+            nfo->randomiser_data = malloc(sizeof(randombag));
+            nfo->fnRandomiserInit = &RandomBagInit;
+            nfo->fnRandomiserNext = &RandomBagNext;
+        } break;
+        case RANDOMISER_TGM: {
+            nfo->randomiser_data = malloc(sizeof(randomiser_TGM_data));
+            nfo->fnRandomiserInit = &RandomTGMInit;
+            nfo->fnRandomiserNext = &RandomTGMNext;
+        } break;
+        case RANDOMISER_RANDOM:
+        default: {
+            nfo->randomiser_data = NULL;
+            nfo->fnRandomiserInit = &RandomRandomInit;
+            nfo->fnRandomiserNext = &RandomRandomNext;
+        } break;
+    }
+}
 
 void TetrominoFree(tetromino* ptr) {
     if (ptr) {

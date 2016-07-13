@@ -44,7 +44,7 @@ int MainCurses() {
         return -2;
     }
 
-    game* gme = Initialize(MAP_WIDTH, MAP_HEIGHT);
+    game* gme = Initialize(MAP_WIDTH, MAP_HEIGHT, RANDOMISER_TGM);
 
     bool quit = false;
     while (!quit) {
@@ -115,7 +115,7 @@ static void DrawInfo(game* src, WINDOW* dst) {
     game_info* s = &src->info;
     werase(dst);
     wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
-    
+
     mvwprintw(dst, 1, 2, "Level: %d (%d)", s->level, s->rowsToNextLevel);
     mvwprintw(dst, 2, 2, "Score: %d", s->score);
 }
