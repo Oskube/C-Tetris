@@ -72,3 +72,11 @@ unsigned RandomTGMNext(void* data) {
 
     return ret;
 }
+
+unsigned RandomRandomInit(void* data) {
+    return RandomRandomNext(data);
+}
+
+unsigned RandomRandomNext(void* data) {
+    return rand()%7;
+}

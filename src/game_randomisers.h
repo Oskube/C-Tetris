@@ -2,6 +2,7 @@
     \brief Enum for each different randomiser functions
 */
 typedef enum {
+    RANDOMISER_RANDOM,
     RANDOMISER_TGM,
     RANDOMISER_BAG,
     RANDOMISER_MAX
@@ -50,3 +51,16 @@ extern unsigned RandomTGMInit(void* data);
     \return Shape of next tetromino
 */
 extern unsigned RandomTGMNext(void* data);
+
+/**
+    \brief Get next random tetromino
+    \param data should be NULL
+    \return Shape of next tetromino
+*/
+extern unsigned RandomRandomInit(void* data);
+/**
+    \brief Get next random tetromino
+    \param data should be NULL
+    \return Shape of next tetromino
+*/
+extern unsigned RandomRandomNext(void* data);
