@@ -9,6 +9,7 @@
 
 static void DrawMap(game* src, WINDOW* dst);
 static void DrawInfo(game* src, WINDOW* dst);
+static void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
 
 int MainCurses() {
     WINDOW* win = initscr();
@@ -118,4 +119,19 @@ static void DrawInfo(game* src, WINDOW* dst) {
 
     mvwprintw(dst, 1, 2, "Level: %d (%d)", s->level, s->rowsToNextLevel);
     mvwprintw(dst, 2, 2, "Score: %d", s->score);
+
+    mvwprintw(dst, 3, 2, "Next:", s->score);
+    DrawNextTetromino(src->info.next, dst, 3, 8);
+}
+
+void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx) {
+    if (tetr == NULL) return;
+
+    // Block locations are relative to tetromino's center
+    topy += 1;
+    topx += 1;
+    block** blocks = tetr->blocks;
+    for (unsigned i=0; i<4; i++) {
+        mvwaddch(dst, topy+blocks[i]->y, topx+blocks[i]->x, '#');
+    }
 }

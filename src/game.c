@@ -80,9 +80,11 @@ int Update(game* ptr) {
             s->combo = 0;
         }
 
-        //  Create new tetromino
-        ptr->active = TetrominoNew(s->next, ptr->map.width/2);
-        s->next = s->fnRandomiserNext(s->randomiser_data);
+        //  Assign next to active tetromino
+        ptr->active = s->next;
+        //  Create a new next tetromino
+        tetromino_shape shape = s->fnRandomiserNext(s->randomiser_data);
+        s->next = TetrominoNew(shape, ptr->map.width/2);
 
         if (ActiveCollided(ptr)) {
             s->ended = 1;
@@ -165,13 +167,17 @@ void ResetGame(game* ptr) {
     s->nextUpdate = clock() + SECTOCLOCK(1); //   Add small delay for 1st tetromino
 
     // Free active tetromino
-    if (ptr->active) {
-        TetrominoFree(ptr->active);
-    }
-    //  Create new randoms and first tetromino
+    if (ptr->active) TetrominoFree(ptr->active);
+
+    //  Free next tetromino
+    if (s->next) TetrominoFree(s->next);
+
+    //  Create new randoms
     tetromino_shape shape = s->fnRandomiserInit(s->randomiser_data);
+    //  Create first and next tetromino
     ptr->active = TetrominoNew(shape, ptr->map.width/2);
-    s->next = s->fnRandomiserNext(s->randomiser_data);
+    shape = s->fnRandomiserNext(s->randomiser_data);
+    s->next = TetrominoNew(shape, ptr->map.width/2);
 }
 
 /*
