@@ -4,7 +4,8 @@ LIBS = -lncurses
 
 SRC = src
 ODIR = obj
-OBJS = $(ODIR)/game.o \
+OBJS = $(ODIR)/game_randomisers.o \
+	   $(ODIR)/game.o \
 	   $(ODIR)/UI_curses.o
 
 BUILD = build

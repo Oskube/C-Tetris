@@ -12,7 +12,7 @@ typedef enum {
 } player_input;
 
 /**
-    \brief Enumerated type for each different tetromino shape
+    \brief Enumerated type for each different tetromino shapes
 */
 typedef enum {
     SHAPE_O,
@@ -70,6 +70,11 @@ typedef struct {
 
     int ended;    /**< Tells if game has ended */
     clock_t nextUpdate; /**< Time of next update */
+
+    tetromino_shape next; /**< The shape of next tetromino */
+    void* randomiser_data; /**< The data used by randomiser functions */
+    unsigned (*fnRandomiserInit)(void*); /**< Function pointer to randomiser init */
+    unsigned (*fnRandomiserNext)(void*); /**< Function pointer to randomiser next */
 } game_info;
 
 /**

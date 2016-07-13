@@ -1,4 +1,6 @@
 #include "game.h"
+#include "game_randomisers.h"
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
@@ -31,16 +33,19 @@ game* Initialize(unsigned width, unsigned height) {
     ptrGame->map.height = height;
     ptrGame->active = NULL;
 
+    ptrGame->info.randomiser_data = malloc(sizeof(randombag));
+    ptrGame->info.fnRandomiserNext = &RandomBagNext;
+    ptrGame->info.fnRandomiserInit = &RandomBagInit;
+
     ResetGame(ptrGame);
     return ptrGame;
 }
 
 int Update(game* ptr) {
     if (!ptr) return -1;
+    if (ptr->info.ended) return -2;
 
     int ret = 0;
-
-    if (ptr->info.ended) return -2;
 
     //  Check if the timer has expired.
     if (ptr->info.nextUpdate - clock() > 0) return ret;
@@ -76,7 +81,9 @@ int Update(game* ptr) {
         }
 
         //  Create new tetromino
-        ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
+        ptr->active = TetrominoNew(s->next, ptr->map.width/2);
+        s->next = s->fnRandomiserNext(s->randomiser_data);
+
         if (ActiveCollided(ptr)) {
             s->ended = 1;
             return -2; //   New tetromino already collided with something -> game over
@@ -117,6 +124,8 @@ int ProcessInput(game* ptr, player_input input) {
 void FreeGame(game* ptr) {
     if (!ptr) return;
 
+    //  Free randomiser data
+    if (ptr->info.randomiser_data) free(ptr->info.randomiser_data);
     //  Free blockmask and active
     if (ptr->active) TetrominoFree(ptr->active);
 
@@ -155,11 +164,14 @@ void ResetGame(game* ptr) {
     s->rowsToNextLevel  = 0;
     s->nextUpdate = clock() + SECTOCLOCK(1); //   Add small delay for 1st tetromino
 
-    // Other
+    // Free active tetromino
     if (ptr->active) {
         TetrominoFree(ptr->active);
     }
-    ptr->active = TetrominoNew(rand()%SHAPE_MAX, ptr->map.width/2);
+    //  Create new randoms and first tetromino
+    tetromino_shape shape = s->fnRandomiserInit(s->randomiser_data);
+    ptr->active = TetrominoNew(shape, ptr->map.width/2);
+    s->next = s->fnRandomiserNext(s->randomiser_data);
 }
 
 /*
