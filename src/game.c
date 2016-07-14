@@ -10,7 +10,7 @@
 
 #define SECTOCLOCK(F) F*CLOCKS_PER_SEC
 
-static void SetRandomiser(game* ptr, randomiser_type new_randomiser);
+static bool SetRandomiser(game* ptr, randomiser_type new_randomiser);
 
 static bool ActiveCollided(game* ptr); // Test if collided with borders or other blocks
 static void FreezeActive(game* ptr); // !_Frees active tetromino partly_!
@@ -27,15 +27,31 @@ static void TetrominoFree(tetromino* ptr);
 game* Initialize(unsigned width, unsigned height, randomiser_type randomiser) {
     if (width == 0 || height == 0) return NULL;
     game* ptrGame = (game*)malloc(sizeof(game));
+    if (!ptrGame) return NULL;
+
+    //  Set map dimensions
+    ptrGame->map.width = width;
+    ptrGame->map.height = height;
+
+    //  Set pointers to NULL.
+    ptrGame->active = NULL;
+    ptrGame->info.next = NULL;
+    ptrGame->info.randomiser_data = NULL;
+    ptrGame->info.fnRandomiserInit = NULL;
+    ptrGame->info.fnRandomiserNext = NULL;
 
     //  Allocate memory for blockmask and initialize it 0
     ptrGame->map.blockMask = (block**)calloc(width*height, sizeof(block*) * width*height);
-    ptrGame->map.width = width;
-    ptrGame->map.height = height;
-    ptrGame->active = NULL;
+    if (!ptrGame->map.blockMask) {
+        FreeGame(ptrGame);
+        return NULL;
+    }
 
     //  Randomiser setup
-    SetRandomiser(ptrGame, randomiser);
+    if(!SetRandomiser(ptrGame, randomiser)) {
+        FreeGame(ptrGame);
+        return NULL;
+    }
 
     ResetGame(ptrGame);
     return ptrGame;
@@ -130,6 +146,8 @@ void FreeGame(game* ptr) {
     if (ptr->info.randomiser_data) free(ptr->info.randomiser_data);
     //  Free blockmask and active
     if (ptr->active) TetrominoFree(ptr->active);
+    //  Free next tetromino
+    if (ptr->info.next) TetrominoFree(ptr->info.next);
 
     //  Free map
     unsigned len = ptr->map.width * ptr->map.height;
@@ -157,12 +175,14 @@ void ResetGame(game* ptr) {
             temp = NULL;
         }
     }
+
     // Reset stats
     game_info* s = &(ptr->info);
     s->score  = 0;
     s->rows   = 0;
     s->level  = 0;
     s->combo  = 0;
+    s->ended  = 0;
     s->rowsToNextLevel  = 0;
     s->nextUpdate = clock() + SECTOCLOCK(1); //   Add small delay for 1st tetromino
 
@@ -184,8 +204,14 @@ void ResetGame(game* ptr) {
     Static functions
 */
 
-void SetRandomiser(game* ptr, randomiser_type new_randomiser) {
-    if (!ptr) return;
+/**
+    \brief Function to set randomiser
+    \param ptr Pointer to the game instance
+    \param new_randomiser Randomiser to set
+    \return True on success
+*/
+bool SetRandomiser(game* ptr, randomiser_type new_randomiser) {
+    if (!ptr) return false;
 
     //  Free old randomiser data
     game_info* nfo = &(ptr->info);
@@ -194,11 +220,13 @@ void SetRandomiser(game* ptr, randomiser_type new_randomiser) {
     switch (new_randomiser) {
         case RANDOMISER_BAG: {
             nfo->randomiser_data = malloc(sizeof(randombag));
+            if (!nfo->randomiser_data) return false;
             nfo->fnRandomiserInit = &RandomBagInit;
             nfo->fnRandomiserNext = &RandomBagNext;
         } break;
         case RANDOMISER_TGM: {
             nfo->randomiser_data = malloc(sizeof(randomiser_TGM_data));
+            if (!nfo->randomiser_data) return false;
             nfo->fnRandomiserInit = &RandomTGMInit;
             nfo->fnRandomiserNext = &RandomTGMNext;
         } break;
@@ -209,8 +237,13 @@ void SetRandomiser(game* ptr, randomiser_type new_randomiser) {
             nfo->fnRandomiserNext = &RandomRandomNext;
         } break;
     }
+    return true;
 }
 
+/**
+    \brief Free memory allocated by TetrominoNew()
+    \param ptr Pointer to the tetromino being freed
+*/
 void TetrominoFree(tetromino* ptr) {
     if (ptr) {
         for (int i = 0; i < 4; i++) {
@@ -260,7 +293,7 @@ bool ActiveCollided(game* ptr) {
     \brief Updates active tetromino to game map
     \param ptr Pointer to game
 
-    \warning Doesn't free allocated blocks. Only container struct.
+    \warning Doesn't free allocated blocks. Only the container struct. Use TetrominoFree() to free the whole tetromino and its blocks
 */
 void FreezeActive(game* ptr) {
     tetromino* t = ptr->active;

@@ -19,6 +19,7 @@ int MainCurses() {
         return -1;
     }
 
+    //  Get window size
     unsigned winCols = 0;
     unsigned winRows = 0;
     getmaxyx(win, winRows, winCols);
@@ -46,6 +47,13 @@ int MainCurses() {
     }
 
     game* gme = Initialize(MAP_WIDTH, MAP_HEIGHT, RANDOMISER_TGM);
+    if (!gme) {
+        fprintf(stderr, "CORE: Couldn't initialize game");
+        delwin(map);
+        delwin(stats);
+        endwin();
+        return -3;
+    }
 
     bool quit = false;
     while (!quit) {
@@ -60,24 +68,28 @@ int MainCurses() {
             default: break;
         }
 
-        //  TODO: Refresh only when something has changed
+        //  Update game logic
         Update(gme);
+
+        //  TODO: Refresh only when something has changed
+        //  Update UI
         DrawMap(gme, map);
         DrawInfo(gme, stats);
-        touchwin(win);  // Update game map
-        // wrefresh(stats);
-        // wrefresh(map);
-        // refresh(); //   Update screen
+
+        touchwin(win); /* Throw away all optimization info */
+        wrefresh(win); /* Update terminal */
     }
+    //  Clean up
     FreeGame(gme);
 
+    delwin(stats);
     delwin(map);
     endwin();
     return 0;
 }
 
 void DrawMap(game* src, WINDOW* dst) {
-    if (src == NULL) return;
+    if (!src) return;
 
     //  First draw already set tetrominos
     unsigned w = src->map.width;
@@ -112,7 +124,9 @@ void DrawMap(game* src, WINDOW* dst) {
     }
 }
 
-static void DrawInfo(game* src, WINDOW* dst) {
+void DrawInfo(game* src, WINDOW* dst) {
+    if (!src) return;
+
     game_info* s = &src->info;
     werase(dst);
     wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
