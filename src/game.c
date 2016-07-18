@@ -488,7 +488,7 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
         ret->blocks[i] = (block*)malloc(sizeof(block));
         ret->blocks[i]->x = 0;
         ret->blocks[i]->y = 0;
-        ret->blocks[i]->symbol = 0;
+        ret->blocks[i]->symbol = shape;
     }
 
     //  Order blocks according to shape

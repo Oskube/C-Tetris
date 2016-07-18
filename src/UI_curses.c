@@ -96,13 +96,14 @@ void DrawMap(game* src, WINDOW* dst, bool showghost) {
     unsigned w = src->map.width;
     unsigned h = src->map.height;
     block** mask = src->map.blockMask;
+    const char symbols[7] = "0#$&8@%";
 
     unsigned len = w*h;
     unsigned row = 1;
     wmove(dst, row, 1);
     for (unsigned i = 0; i < len; i++) {
         if (mask[i]) {
-            waddch(dst, '#');
+            waddch(dst, symbols[mask[i]->symbol]);
         } else {
             waddch(dst, ' ');
         }
@@ -117,6 +118,7 @@ void DrawMap(game* src, WINDOW* dst, bool showghost) {
 
         int x[4],
             y[4];
+        char sym = symbols[mask[0]->symbol];
         for (unsigned i = 0; i < 4; i++) {
             y[i] = mask[i]->y+1;
             x[i] = mask[i]->x+1;
@@ -128,10 +130,10 @@ void DrawMap(game* src, WINDOW* dst, bool showghost) {
             mvwaddch(dst, y[3]+src->info.ghostY, x[3]+src->active->x, ':');
         }
 
-        mvwaddch(dst, y[0]+src->active->y, x[0]+src->active->x, '#');
-        mvwaddch(dst, y[1]+src->active->y, x[1]+src->active->x, '#');
-        mvwaddch(dst, y[2]+src->active->y, x[2]+src->active->x, '#');
-        mvwaddch(dst, y[3]+src->active->y, x[3]+src->active->x, '#');
+        mvwaddch(dst, y[0]+src->active->y, x[0]+src->active->x, sym);
+        mvwaddch(dst, y[1]+src->active->y, x[1]+src->active->x, sym);
+        mvwaddch(dst, y[2]+src->active->y, x[2]+src->active->x, sym);
+        mvwaddch(dst, y[3]+src->active->y, x[3]+src->active->x, sym);
     }
 }
 
