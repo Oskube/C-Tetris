@@ -127,6 +127,7 @@ int Update(game* ptr) {
 
 int ProcessInput(game* ptr, player_input input) {
     if (!ptr) return -1;
+    if (ptr->info.ended) return -2;
 
     tetromino* act = ptr->active;
     if (!act) return 0;
@@ -553,11 +554,15 @@ int CalcGhost(game* ptr) {
     tetromino* tetr = ptr->active;
     unsigned origY = tetr->y;
 
+    bool moved = false;
     while (!ActiveCollided(ptr)) {
         tetr->y++;
+        moved = true;
     }
 
-    ptr->info.ghostY = tetr->y-1; // Set y of the collided tetromino to ghosty
+    if (moved) {
+        ptr->info.ghostY = tetr->y-1; // Set y of the collided tetromino to ghosty
+    }
     tetr->y = origY; //  Restore original y of the active tetromino
     return ptr->info.ghostY;
 }
