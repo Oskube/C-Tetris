@@ -64,6 +64,7 @@ int MainCurses() {
             case 'a': ProcessInput(gme, INPUT_LEFT); break;
             case 's': ProcessInput(gme, INPUT_DOWN); break;
             case 'd': ProcessInput(gme, INPUT_RIGHT); break;
+            case ' ': ProcessInput(gme, INPUT_SET); break;
             case 'q': quit = true; break;
             default: break;
         }

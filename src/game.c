@@ -24,6 +24,7 @@ static int TetrominoMove(game* ptr, player_input dir);
 static int TetrominoRotate(game* ptr);
 static void TetrominoFree(tetromino* ptr);
 static int CalcGhost(game* ptr);
+static void HardDrop(game* ptr);
 
 game* Initialize(unsigned width, unsigned height, randomiser_type randomiser) {
     if (width == 0 || height == 0) return NULL;
@@ -137,7 +138,7 @@ int ProcessInput(game* ptr, player_input input) {
         }
         case INPUT_DOWN: return ptr->info.nextUpdate = 0;
         case INPUT_ROTATE: return TetrominoRotate(ptr);
-        case INPUT_SET: {} break;
+        case INPUT_SET: HardDrop(ptr); break;
         default: break;
     }
     return 0;
@@ -559,4 +560,18 @@ int CalcGhost(game* ptr) {
     ptr->info.ghostY = tetr->y-1; // Set y of the collided tetromino to ghosty
     tetr->y = origY; //  Restore original y of the active tetromino
     return ptr->info.ghostY;
+}
+
+/**
+    \brief Drops active tetromino of given game instance to the place of ghost
+    \param ptr Pointer to the game instance
+*/
+void HardDrop(game* ptr) {
+    //  Make sure position of the ghost is correct
+    int y = CalcGhost(ptr);
+    ptr->active->y = y;
+
+    // Call Update() to lock tetromino and generate new
+    ptr->info.nextUpdate = clock();
+    Update(ptr);
 }
