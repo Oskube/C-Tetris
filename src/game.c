@@ -23,6 +23,7 @@ static tetromino* TetrominoNew(tetromino_shape shape, unsigned x);
 static int TetrominoMove(game* ptr, player_input dir);
 static int TetrominoRotate(game* ptr);
 static void TetrominoFree(tetromino* ptr);
+static int CalcGhost(game* ptr);
 
 game* Initialize(unsigned width, unsigned height, randomiser_type randomiser) {
     if (width == 0 || height == 0) return NULL;
@@ -101,6 +102,9 @@ int Update(game* ptr) {
         //  Create a new next tetromino
         tetromino_shape shape = s->fnRandomiserNext(s->randomiser_data);
         s->next = TetrominoNew(shape, ptr->map.width/2);
+
+        //  Calculate ghost for the new active tetromino
+        CalcGhost(ptr);
 
         if (ActiveCollided(ptr)) {
             s->ended = 1;
@@ -198,6 +202,9 @@ void ResetGame(game* ptr) {
     ptr->active = TetrominoNew(shape, ptr->map.width/2);
     shape = s->fnRandomiserNext(s->randomiser_data);
     s->next = TetrominoNew(shape, ptr->map.width/2);
+
+    //  Calculate ghost
+    CalcGhost(ptr);
 }
 
 /*
@@ -415,6 +422,9 @@ int TetrominoMove(game* ptr, player_input dir) {
             ptr->active->x += d;
             return 1;
         }
+
+        //  Recalculate ghost
+        CalcGhost(ptr);
     }
     return 0;
 }
@@ -446,6 +456,9 @@ int TetrominoRotate(game* ptr) {
             return 1;
         }
     }
+
+    //  Recalculate ghost
+    CalcGhost(ptr);
     return 0;
 }
 
@@ -528,4 +541,22 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
     }
 
     return ret;
+}
+
+/**
+    \brief Calculates position of ghost of the active tetromino
+    \param ptr Pointer to game instance
+    \return y of the ghots
+*/
+int CalcGhost(game* ptr) {
+    tetromino* tetr = ptr->active;
+    unsigned origY = tetr->y;
+
+    while (!ActiveCollided(ptr)) {
+        tetr->y++;
+    }
+
+    ptr->info.ghostY = tetr->y-1; // Set y of the collided tetromino to ghosty
+    tetr->y = origY; //  Restore original y of the active tetromino
+    return ptr->info.ghostY;
 }

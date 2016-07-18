@@ -7,7 +7,7 @@
 #define MAP_WIDTH  10
 #define MAP_HEIGHT 20
 
-static void DrawMap(game* src, WINDOW* dst);
+static void DrawMap(game* src, WINDOW* dst, bool showghost);
 static void DrawInfo(game* src, WINDOW* dst);
 static void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
 
@@ -73,7 +73,7 @@ int MainCurses() {
 
         //  TODO: Refresh only when something has changed
         //  Update UI
-        DrawMap(gme, map);
+        DrawMap(gme, map, true);
         DrawInfo(gme, stats);
 
         touchwin(win); /* Throw away all optimization info */
@@ -88,7 +88,7 @@ int MainCurses() {
     return 0;
 }
 
-void DrawMap(game* src, WINDOW* dst) {
+void DrawMap(game* src, WINDOW* dst, bool showghost) {
     if (!src) return;
 
     //  First draw already set tetrominos
@@ -113,14 +113,24 @@ void DrawMap(game* src, WINDOW* dst) {
     //  Draw active tetromino
     if (src->active != NULL) {
         mask = src->active->blocks;
+
+        int x[4],
+            y[4];
         for (unsigned i = 0; i < 4; i++) {
-            if (i == 0)
-            mvwaddch(dst, src->active->y + mask[i]->y+1, src->active->x + mask[i]->x+1, '$');
-            else
-            mvwaddch(dst, src->active->y + mask[i]->y+1, src->active->x + mask[i]->x+1, 'O');
+            y[i] = mask[i]->y+1;
+            x[i] = mask[i]->x+1;
         }
-    } else {
-        mvaddch(0, 0, 'A');
+        if (showghost) {
+            mvwaddch(dst, y[0]+src->info.ghostY, x[0]+src->active->x, ':');
+            mvwaddch(dst, y[1]+src->info.ghostY, x[1]+src->active->x, ':');
+            mvwaddch(dst, y[2]+src->info.ghostY, x[2]+src->active->x, ':');
+            mvwaddch(dst, y[3]+src->info.ghostY, x[3]+src->active->x, ':');
+        }
+
+        mvwaddch(dst, y[0]+src->active->y, x[0]+src->active->x, '#');
+        mvwaddch(dst, y[1]+src->active->y, x[1]+src->active->x, '#');
+        mvwaddch(dst, y[2]+src->active->y, x[2]+src->active->x, '#');
+        mvwaddch(dst, y[3]+src->active->y, x[3]+src->active->x, '#');
     }
 }
 

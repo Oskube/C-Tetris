@@ -72,6 +72,8 @@ typedef struct {
     int ended;    /**< Tells if game has ended */
     clock_t nextUpdate; /**< Time of next update */
 
+    int ghostY; /**< Ghost of the active tetromino */
+
     tetromino* next;     /**< The next tetromino */
     void* randomiser_data; /**< The data used by randomiser functions */
     unsigned (*fnRandomiserInit)(void*); /**< Function pointer to randomiser init */
