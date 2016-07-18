@@ -143,10 +143,10 @@ void DrawInfo(game* src, WINDOW* dst) {
     wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
 
     mvwprintw(dst, 1, 2, "Level: %d (%d)", s->level, s->rowsToNextLevel);
-    mvwprintw(dst, 2, 2, "Score: %d", s->score);
-
-    mvwprintw(dst, 3, 2, "Next:", s->score);
-    DrawNextTetromino(src->info.next, dst, 3, 8);
+    mvwprintw(dst, 2, 2, "Lines: %d", s->rows);
+    mvwprintw(dst, 3, 2, "Score: %d", s->score);
+    mvwprintw(dst, 4, 2, "Next:", s->score);
+    DrawNextTetromino(src->info.next, dst, 4, 8);
 }
 
 void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx) {
