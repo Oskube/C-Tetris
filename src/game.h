@@ -1,4 +1,3 @@
-#include <time.h>
 #include "game_randomisers.h"
 
 /**
@@ -62,15 +61,13 @@ typedef struct {
     \brief A structure that contains game events and other info.
 */
 typedef struct {
+    int ended;    /**< Tells if game has ended */
     unsigned score; /**< Player scores */
     unsigned rows;  /**< Number of rows destroyed */
 
     unsigned level; /**< Current level */
     unsigned combo; /**< Current combo */
     int rowsToNextLevel; /**< Rows to clear until next level */
-
-    int ended;    /**< Tells if game has ended */
-    clock_t nextUpdate; /**< Time of next update */
 
     int ghostY; /**< Ghost of the active tetromino */
 
@@ -87,6 +84,10 @@ typedef struct {
     game_map   map;     /**< A matrix where tetrominos land */
     game_info  info;    /**< Game statistics */
     tetromino* active;  /**< A pointer to the active user controlled tetromino */
+
+    unsigned nextUpdate; /**< Time of next update */
+    unsigned step; /**< Time step between updates */
+    unsigned (*fnMillis)(); /**< Function used to get current time in milliseconds */
 } game;
 
 /**
@@ -94,11 +95,12 @@ typedef struct {
     \param width The width of new game area
     \param height The height of new game area
     \param randomiser Randomiser used in tetromino creation
+    \param fntime Function pointer to a time function
     \return Pointer to new game instance
 
     \remark You must use FreeGame() to free allocated memory.
 */
-extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser);
+extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fntime)());
 
 /**
     \brief Process one step of game logic

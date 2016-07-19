@@ -1,5 +1,7 @@
 #include <curses.h>
 #include <stdio.h>
+#include <sys/time.h> /* gettimeofday() */
+#include <unistd.h> /* usleep() */
 
 #include "UI_curses.h"
 #include "game.h"
@@ -10,6 +12,7 @@
 static void DrawMap(game* src, WINDOW* dst, bool showghost);
 static void DrawInfo(game* src, WINDOW* dst);
 static void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
+static unsigned GetTime(); /* Get milliseconds */
 
 int MainCurses() {
     WINDOW* win = initscr();
@@ -46,7 +49,7 @@ int MainCurses() {
         return -2;
     }
 
-    game* gme = Initialize(MAP_WIDTH, MAP_HEIGHT, RANDOMISER_TGM);
+    game* gme = Initialize(MAP_WIDTH, MAP_HEIGHT, RANDOMISER_TGM, GetTime);
     if (!gme) {
         fprintf(stderr, "CORE: Couldn't initialize game");
         delwin(map);
@@ -68,7 +71,7 @@ int MainCurses() {
             case 'q': quit = true; break;
             default: break;
         }
-
+        
         //  Update game logic
         Update(gme);
 
@@ -79,6 +82,7 @@ int MainCurses() {
 
         touchwin(win); /* Throw away all optimization info */
         wrefresh(win); /* Update terminal */
+        usleep(1000);
     }
     //  Clean up
     FreeGame(gme);
@@ -161,4 +165,11 @@ void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned top
     for (unsigned i=0; i<4; i++) {
         mvwaddch(dst, topy+blocks[i]->y, topx+blocks[i]->x, '#');
     }
+}
+
+unsigned GetTime() {
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    unsigned ret = t.tv_sec*1000 + t.tv_usec/1000;
+    return ret;
 }

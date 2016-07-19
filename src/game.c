@@ -2,13 +2,10 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <time.h>
 
 #define MIN_DELAY_LEVEL 10
-#define MAX_DELAY 1.2f
-#define MIN_DELAY 0.15f
-
-#define SECTOCLOCK(F) F*CLOCKS_PER_SEC
+#define MAX_DELAY 1200
+#define MIN_DELAY 150
 
 static bool SetRandomiser(game* ptr, randomiser_type new_randomiser);
 
@@ -26,8 +23,8 @@ static void TetrominoFree(tetromino* ptr);
 static int CalcGhost(game* ptr);
 static void HardDrop(game* ptr);
 
-game* Initialize(unsigned width, unsigned height, randomiser_type randomiser) {
-    if (width == 0 || height == 0) return NULL;
+game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fntime)()) {
+    if (width == 0 || height == 0 || fntime == NULL) return NULL;
     game* ptrGame = (game*)malloc(sizeof(game));
     if (!ptrGame) return NULL;
 
@@ -41,6 +38,7 @@ game* Initialize(unsigned width, unsigned height, randomiser_type randomiser) {
     ptrGame->info.randomiser_data = NULL;
     ptrGame->info.fnRandomiserInit = NULL;
     ptrGame->info.fnRandomiserNext = NULL;
+    ptrGame->fnMillis = fntime;
 
     //  Allocate memory for blockmask and initialize it 0
     ptrGame->map.blockMask = (block**)calloc(width*height, sizeof(block*) * width*height);
@@ -63,10 +61,11 @@ int Update(game* ptr) {
     if (!ptr) return -1;
     if (ptr->info.ended) return -2;
 
+    unsigned milliseconds = ptr->fnMillis();
     int ret = 0;
 
     //  Check if the timer has expired.
-    if (ptr->info.nextUpdate - clock() > 0) return ret;
+    if (ptr->nextUpdate - milliseconds <= ptr->step) return ret;
 
     //  Check if active tetromino hit bottom or tetromino below.
     if (TetrominoMove(ptr, INPUT_DOWN)) {
@@ -90,9 +89,18 @@ int Update(game* ptr) {
             //  Add rows to counter and to level progress
             s->rows += ret;
             s->rowsToNextLevel -= ret;
+            bool levels = false;
             while (s->rowsToNextLevel <= 0) {
                 s->level += 1;
                 s->rowsToNextLevel += (s->level)*3;
+                levels = true;
+            }
+
+            //  If level has changed calculate new step duration
+            if (levels) {
+                unsigned lvl = s->level;
+                if (lvl > MIN_DELAY_LEVEL) lvl = MIN_DELAY_LEVEL;
+                ptr->step = (MAX_DELAY-MIN_DELAY)*(MIN_DELAY_LEVEL-lvl)/MIN_DELAY_LEVEL + MIN_DELAY;
             }
         } else {
             s->combo = 0;
@@ -114,13 +122,7 @@ int Update(game* ptr) {
     }
 
     //  Set time of next update
-    unsigned lvl = ptr->info.level;
-    if (lvl > MIN_DELAY_LEVEL) lvl = MIN_DELAY_LEVEL;
-
-    float step = (float)(MIN_DELAY_LEVEL - lvl) / MIN_DELAY_LEVEL * (MAX_DELAY-MIN_DELAY);
-    if (step < MIN_DELAY) step += MIN_DELAY;
-    else if (step > MAX_DELAY) step = MAX_DELAY;
-    ptr->info.nextUpdate = clock() + SECTOCLOCK(step);
+    ptr->nextUpdate = milliseconds + ptr->step;
 
     return ret;
 }
@@ -137,7 +139,7 @@ int ProcessInput(game* ptr, player_input input) {
         case INPUT_RIGHT: {
             return TetrominoMove(ptr, input);
         }
-        case INPUT_DOWN: return ptr->info.nextUpdate = 0;
+        case INPUT_DOWN: ptr->nextUpdate = 0; break;
         case INPUT_ROTATE: return TetrominoRotate(ptr);
         case INPUT_SET: HardDrop(ptr); break;
         default: break;
@@ -189,8 +191,11 @@ void ResetGame(game* ptr) {
     s->level  = 0;
     s->combo  = 0;
     s->ended  = 0;
-    s->rowsToNextLevel  = 0;
-    s->nextUpdate = clock() + SECTOCLOCK(1); //   Add small delay for 1st tetromino
+    s->rowsToNextLevel  = 2;
+
+    //  Update timer
+    ptr->step = MAX_DELAY;
+    ptr->nextUpdate = ptr->fnMillis() + ptr->step;
 
     // Free active tetromino
     if (ptr->active) TetrominoFree(ptr->active);
@@ -577,6 +582,5 @@ void HardDrop(game* ptr) {
     ptr->active->y = y;
 
     // Call Update() to lock tetromino and generate new
-    ptr->info.nextUpdate = clock();
-    Update(ptr);
+    ptr->nextUpdate = 0;
 }
