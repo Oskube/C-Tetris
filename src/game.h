@@ -42,7 +42,7 @@ typedef struct {
 */
 typedef struct {
     block** blocks; /**< Pointer to blocks which are part of tetromino */
-    unsigned count; /**< Keeps count of blocks alive, if 0 free block */
+    // unsigned count; /**< Keeps count of blocks alive, if 0 free block */
     tetromino_shape shape; /**< The shape of tetromino */
     unsigned x; /**< The origo of tetromino*/
     unsigned y; /**< The origo of tetromino*/
@@ -64,6 +64,7 @@ typedef struct {
     int ended;    /**< Tells if game has ended */
     unsigned score; /**< Player scores */
     unsigned rows;  /**< Number of rows destroyed */
+    unsigned countTetromino[SHAPE_MAX]; /**< Count of each different tetromino spawned */
 
     unsigned level; /**< Current level */
     unsigned combo; /**< Current combo */

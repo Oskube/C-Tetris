@@ -108,6 +108,7 @@ int Update(game* ptr) {
 
         //  Assign next to active tetromino
         ptr->active = s->next;
+        s->countTetromino[ptr->active->shape] += 1;
         //  Create a new next tetromino
         tetromino_shape shape = s->fnRandomiserNext(s->randomiser_data);
         s->next = TetrominoNew(shape, ptr->map.width/2);
@@ -193,6 +194,8 @@ void ResetGame(game* ptr) {
     s->ended  = 0;
     s->rowsToNextLevel  = 2;
 
+    for (unsigned i=0;i<SHAPE_MAX;i++) s->countTetromino[i] = 0;
+
     //  Update timer
     ptr->step = MAX_DELAY;
     ptr->nextUpdate = ptr->fnMillis() + ptr->step;
@@ -207,6 +210,8 @@ void ResetGame(game* ptr) {
     tetromino_shape shape = s->fnRandomiserInit(s->randomiser_data);
     //  Create first and next tetromino
     ptr->active = TetrominoNew(shape, ptr->map.width/2);
+    s->countTetromino[ptr->active->shape] += 1;
+
     shape = s->fnRandomiserNext(s->randomiser_data);
     s->next = TetrominoNew(shape, ptr->map.width/2);
 
@@ -488,7 +493,7 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
     ret->x = x-1;
     ret->y = 0;
     ret->shape = shape;
-    ret->count = 0;
+    // ret->count = 0;
 
     for (int i = 0; i < 4; i++) {
         ret->blocks[i] = (block*)malloc(sizeof(block));
@@ -558,6 +563,7 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
 int CalcGhost(game* ptr) {
     tetromino* tetr = ptr->active;
     unsigned origY = tetr->y;
+    ptr->info.ghostY = tetr->y;
 
     bool moved = false;
     while (!ActiveCollided(ptr)) {

@@ -11,7 +11,8 @@
 
 static void DrawMap(game* src, WINDOW* dst, bool showghost);
 static void DrawInfo(game* src, WINDOW* dst);
-static void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
+static void DrawTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
+static void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx);
 static unsigned GetTime(); /* Get milliseconds */
 
 int MainCurses() {
@@ -71,7 +72,7 @@ int MainCurses() {
             case 'q': quit = true; break;
             default: break;
         }
-        
+
         //  Update game logic
         Update(gme);
 
@@ -152,19 +153,33 @@ void DrawInfo(game* src, WINDOW* dst) {
     mvwprintw(dst, 2, 2, "Lines: %d", s->rows);
     mvwprintw(dst, 3, 2, "Score: %d", s->score);
     mvwprintw(dst, 4, 2, "Next:", s->score);
-    DrawNextTetromino(src->info.next, dst, 4, 8);
+    DrawTetromino(src->info.next, dst, 4, 8);
+    DrawStats(src, dst, 8, 2);
 }
 
-void DrawNextTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx) {
+void DrawTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx) {
     if (tetr == NULL) return;
 
+    const char symbols[7] = "0#$&8@%";
     // Block locations are relative to tetromino's center
     topy += 1;
     topx += 1;
     block** blocks = tetr->blocks;
     for (unsigned i=0; i<4; i++) {
-        mvwaddch(dst, topy+blocks[i]->y, topx+blocks[i]->x, '#');
+        mvwaddch(dst, topy+blocks[i]->y, topx+blocks[i]->x, symbols[blocks[i]->symbol]);
     }
+}
+
+void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx) {
+    unsigned i = 0;
+    mvwprintw(dst, topy++, topx, "Statistics:");
+    mvwprintw(dst, topy++, topx, "O: %d", src->info.countTetromino[i++]);
+    mvwprintw(dst, topy++, topx, "I: %d", src->info.countTetromino[i++]);
+    mvwprintw(dst, topy++, topx, "T: %d", src->info.countTetromino[i++]);
+    mvwprintw(dst, topy++, topx, "L: %d", src->info.countTetromino[i++]);
+    mvwprintw(dst, topy++, topx, "J: %d", src->info.countTetromino[i++]);
+    mvwprintw(dst, topy++, topx, "S: %d", src->info.countTetromino[i++]);
+    mvwprintw(dst, topy++, topx, "Z: %d", src->info.countTetromino[i]);
 }
 
 unsigned GetTime() {
