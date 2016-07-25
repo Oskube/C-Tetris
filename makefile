@@ -6,6 +6,8 @@ SRC = src
 ODIR = obj
 OBJS = $(ODIR)/game_randomisers.o \
 	   $(ODIR)/game.o \
+	   $(ODIR)/file_misc.o \
+	   $(ODIR)/hiscore.o \
 	   $(ODIR)/UI_curses.o
 
 BUILD = build
