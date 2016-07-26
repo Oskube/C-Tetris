@@ -8,6 +8,7 @@ OBJS = $(ODIR)/game_randomisers.o \
 	   $(ODIR)/game.o \
 	   $(ODIR)/file_misc.o \
 	   $(ODIR)/hiscore.o \
+	   $(ODIR)/ncurse_state_game.o \
 	   $(ODIR)/UI_curses.o
 
 BUILD = build
