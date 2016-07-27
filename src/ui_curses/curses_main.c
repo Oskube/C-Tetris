@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <unistd.h> /* usleep() */
 
-#include "UI_curses.h"
-#include "ncurse_states.h"
+#include "curses_main.h"
+#include "states.h"
 
 int MainCurses() {
     WINDOW* win = initscr();

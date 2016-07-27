@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <sys/time.h> /* gettimeofday() */
 
-#include "ncurse_states.h"
-#include "game.h"
+#include "states.h"
+#include "../core/game.h"
 
 #define MAP_WIDTH  10
 #define MAP_HEIGHT 20
