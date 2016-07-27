@@ -193,6 +193,7 @@ void ResetGame(game* ptr) {
     s->combo  = 0;
     s->ended  = 0;
     s->rowsToNextLevel  = 2;
+    s->timeStarted = ptr->fnMillis();
 
     for (unsigned i=0;i<SHAPE_MAX;i++) s->countTetromino[i] = 0;
 
@@ -217,6 +218,12 @@ void ResetGame(game* ptr) {
 
     //  Calculate ghost
     CalcGhost(ptr);
+}
+
+unsigned GetGameTime(game* ptr) {
+    if (ptr==NULL) return 0;
+
+    return ptr->fnMillis() - (ptr->info.timeStarted);
 }
 
 /*

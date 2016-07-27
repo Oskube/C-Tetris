@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <sys/time.h> /* gettimeofday() */
+#include <stdlib.h>
 
 #include "states.h"
 #include "../core/game.h"
+#include "../core/hiscore.h"
 
 #define MAP_WIDTH  10
 #define MAP_HEIGHT 20
@@ -14,7 +16,7 @@ static void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx);
 static unsigned GetTime(); /* Get milliseconds */
 
 //  Static fsm functions
-static int StateInit(WINDOW* win);
+static int StateInit(WINDOW* win, void** data);
 static void StateCleanUp();
 
 //  Static vars used by this state
@@ -28,7 +30,7 @@ void* StateGame(WINDOW* win, void** data) {
 
     //  State init
     if (!is_running) {
-        if (StateInit(win) != 0) return NULL;
+        if (StateInit(win, data) != 0) return NULL;
         is_running = true;
     }
     //  State code
@@ -54,14 +56,26 @@ void* StateGame(WINDOW* win, void** data) {
 
     //  If quit requested
     if (!is_running) {
+        *data = malloc(sizeof(hiscore_list_entry));
+        if (!*data) return NULL;
+
+        //  Fill entry struct
+        hiscore_list_entry* e = (hiscore_list_entry*)*data;
+        e->score = gme->info.score;
+        e->rows = gme->info.rows;
+        e->lvl = gme->info.level;
+        e->time = GetGameTime(gme);
+
         StateCleanUp();
-        return NULL;
+        return StateHiscores;
     }
 
     return StateGame;   //  Continue with current state
 }
 
-int StateInit(WINDOW* win) {
+int StateInit(WINDOW* win, void** data) {
+    if (!data) return -1;
+
     //  Get window size
     unsigned winCols = 0;
     unsigned winRows = 0;
@@ -85,7 +99,7 @@ int StateInit(WINDOW* win) {
     if (!stats || !map) {
         fprintf(stderr, "CURSES: Subwindow creation failed.");
         endwin();
-        return -1;
+        return -2;
     }
 
     gme = Initialize(MAP_WIDTH, MAP_HEIGHT, RANDOMISER_TGM, GetTime);
@@ -94,7 +108,7 @@ int StateInit(WINDOW* win) {
         delwin(map);
         delwin(stats);
         endwin();
-        return -2;
+        return -3;
     }
     return 0;
 }

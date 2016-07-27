@@ -11,7 +11,8 @@ CORE = game_randomisers.o \
 	   hiscore.o
 CORE := $(addprefix $(ODIR)/core/, $(CORE))
 
-CURSES = state_game.o \
+CURSES = state_hiscores.o \
+		 state_game.o \
 		 curses_main.o
 CURSES := $(addprefix $(ODIR)/ui_curses/, $(CURSES))
 

@@ -62,6 +62,7 @@ typedef struct {
 */
 typedef struct {
     int ended;    /**< Tells if game has ended */
+    unsigned timeStarted;
     unsigned score; /**< Player scores */
     unsigned rows;  /**< Number of rows destroyed */
     unsigned countTetromino[SHAPE_MAX]; /**< Count of each different tetromino spawned */
@@ -129,3 +130,10 @@ extern void FreeGame(game* ptr);
     \param ptr Pointer to game instance
 */
 extern void ResetGame(game* ptr);
+
+/**
+    \brief Get game duration
+    \param ptr Pointer to the game instance
+    \return Duration in milliseconds
+*/
+extern unsigned GetGameTime(game* ptr);
