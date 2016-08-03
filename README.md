@@ -1,6 +1,5 @@
 # C-Tetris
-
-C-Tetris is a tetris clone written in C. The user interface is implemented with Curses. This project is made just for fun and practice.
+C-Tetris is a tetris clone written in C. The user interface is implemented with ncurses. This project is made just for fun and practice.
 
 Some of the implemented features:
 - High scores
@@ -14,17 +13,15 @@ Some of the implemented features:
 ![Screenshot](./curses_ui.png)
 
 ## Compiling
-
-To compile just run ```make``` in the repository root. Compiled program will be located in ./build directory.
+Make sure you have installed the package  ```libncurses5-dev``` on your system. To compile just run ```make``` in the repository root. Compiled program will be located in ./build directory.
 
 Compiling and running:
 ```bash
-make
-./build/tetr
+make && ./build/tetr
 ```
 
 ## Controls
-Curses key mapping:
+Ncurses key mapping:
 
 Key   | Action
 :----:|-------
