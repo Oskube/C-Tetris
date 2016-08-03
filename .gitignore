@@ -1,0 +1,6 @@
+*.o
+build/
+obj/
+
+
+hiscores
