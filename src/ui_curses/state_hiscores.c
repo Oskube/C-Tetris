@@ -36,6 +36,7 @@ void* StateHiscores(WINDOW* win, void** data) {
         nodelay(win, TRUE);
         noecho();
         curs_set(0);
+        clear();
         DrawHiscores(win, 1, 5, scoreTable, HISCORE_LENGTH);
     }
 
@@ -112,7 +113,7 @@ void DrawHiscores(WINDOW* dst, unsigned topy, unsigned topx, hiscore_list_entry*
         mvwprintw(dst, topy, topx+3, "%s", list[i].name);
         mvwprintw(dst, topy, topx+20, "%d", list[i].score);
         mvwprintw(dst, topy, topx+30, "%d", list[i].lvl);
-        mvwprintw(dst, topy, topx+35, "%d:%d.%d", min, sec, tenth);
+        mvwprintw(dst, topy, topx+35, "%d:%02d.%d", min, sec, tenth);
         mvwprintw(dst, topy, topx+50, "%s", ctime(&date));
     }
 }

@@ -77,6 +77,7 @@ void* StateGame(WINDOW* win, void** data) {
 int StateInit(WINDOW* win, void** data) {
     if (!data) return -1;
 
+    clear();
     //  Get window size
     unsigned winCols = 0;
     unsigned winRows = 0;
