@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <sys/time.h> /* gettimeofday() */
 #include <stdlib.h>
+#include <ctype.h> /* tolower() */
 
 #include "states.h"
 #include "../core/game.h"
@@ -36,7 +37,7 @@ void* StateGame(WINDOW* win, void** data) {
     //  State code
     //  Read and process user input
     int input = getch();
-    switch (input) {
+    switch (tolower(input)) {
         case 'w': ProcessInput(gme, INPUT_ROTATE); break;
         case 'a': ProcessInput(gme, INPUT_LEFT); break;
         case 's': ProcessInput(gme, INPUT_DOWN); break;

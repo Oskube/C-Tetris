@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <time.h> /* time() */
+#include <ctype.h> /* tolower() */
 
 #include "states.h"
 #include "../core/hiscore.h"
@@ -39,7 +40,7 @@ void* StateHiscores(WINDOW* win, void** data) {
     }
 
     int input = getch();
-    switch (input) {
+    switch (tolower(input)) {
         case 'q': {
             is_running = false;
             nextState = NULL;
