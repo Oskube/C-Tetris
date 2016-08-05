@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <string.h> /* strncpy */
 #include <time.h> /* time() */
 #include <ctype.h> /* tolower() */
 
 #include "states.h"
+#include "os_dependent.h"
 #include "../core/hiscore.h"
 
 
@@ -15,6 +17,7 @@ static bool is_running = false;
 static WINDOW* win = NULL;
 static hiscore_list_entry scoreTable[HISCORE_LENGTH] = {0};
 static hiscore_list_entry* entry = NULL;
+static char path_hiscore[256] = {0};
 
 void* StateHiscores(WINDOW* win, void** data) {
     if (!is_running) {
@@ -24,12 +27,13 @@ void* StateHiscores(WINDOW* win, void** data) {
 
     void* (*nextState)(WINDOW*, void**);
     nextState = StateHiscores;
+    // mvprintw(0,0, "%s", path_hiscore); // Prints hiscore file path
 
     if (entry != NULL) {
         //  Get name and write it to file
         mvgetnstr(16, getmaxx(win)/2-5, entry->name, 15);
         AddScoreToList(scoreTable, HISCORE_LENGTH, entry);
-        SaveHiScores(HISCORE_FILE, scoreTable, HISCORE_LENGTH);
+        SaveHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
         free(entry);
         entry = NULL;
 
@@ -63,7 +67,10 @@ int StateInit(WINDOW* w, void** data) {
 
     clear();
     //  Read high scores
-    ReadHiScores(HISCORE_FILE, scoreTable, HISCORE_LENGTH);
+    int len = GetExecutablePath(path_hiscore, 256);
+    if (len < 0) return -2;
+    strncpy(path_hiscore+len, HISCORE_FILE, 256-len);
+    ReadHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
 
     entry = (hiscore_list_entry*)*data;
     if (entry != NULL) {

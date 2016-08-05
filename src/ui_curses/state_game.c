@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <sys/time.h> /* gettimeofday() */
 #include <stdlib.h>
 #include <ctype.h> /* tolower() */
 
 #include "states.h"
+#include "os_dependent.h"
 #include "../core/game.h"
 #include "../core/hiscore.h"
 
@@ -14,7 +14,6 @@ static void DrawMap(game* src, WINDOW* dst, bool showghost);
 static void DrawInfo(game* src, WINDOW* dst);
 static void DrawTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
 static void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx);
-static unsigned GetTime(); /* Get milliseconds */
 
 //  Static fsm functions
 static int StateInit(WINDOW* win, void** data);
@@ -216,11 +215,4 @@ void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx) {
     }
 
     mvwprintw(dst, topy, topx, "Total: %d", total);
-}
-
-unsigned GetTime() {
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    unsigned ret = t.tv_sec*1000 + t.tv_usec/1000;
-    return ret;
 }

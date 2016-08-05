@@ -13,7 +13,8 @@ CORE := $(addprefix $(ODIR)/core/, $(CORE))
 
 CURSES = state_hiscores.o \
 		 state_game.o \
-		 curses_main.o
+		 curses_main.o \
+		 os_linux.o
 CURSES := $(addprefix $(ODIR)/ui_curses/, $(CURSES))
 
 

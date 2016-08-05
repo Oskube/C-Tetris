@@ -38,4 +38,3 @@ List of known issues:
 - Randomiser can only be changed by modifying source code
 - Random seed isn't initialized atm
 - High score sorting is bad
-- High score file is located in $PWD/hiscore
