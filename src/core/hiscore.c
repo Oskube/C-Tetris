@@ -61,7 +61,7 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
     // unsigned dLen = DecodeBigendian(*(unsigned*)(p+8));
     p += HEADER_LEN;
 
-    for (unsigned cur=0; p != end; cur++) {
+    for (unsigned cur=0; p != end && cur < len; cur++) {
         ptrTable[cur].score = DecodeBigendian(*(unsigned*)(p));
         ptrTable[cur].rows  = DecodeBigendian(*(unsigned*)(p+4));
         ptrTable[cur].lvl   = DecodeBigendian(*(unsigned*)(p+8));
@@ -104,8 +104,12 @@ int SaveHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
         p += 20;
 
         // name, write 16 bytes even if the name is shorter
-        for (unsigned i=0; i<16; p++, i++)
+        unsigned i=0;
+        for (; i<16; p++, i++) {
             *p = ptrTable[cur].name[i];
+            if (*p == '\0') break;
+        }
+        for(; i<16; p++, i++) *p = 0;
     }
 
     //  Calculate CRC32 for the buffer and append it to end

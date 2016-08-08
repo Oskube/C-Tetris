@@ -6,7 +6,7 @@
 int GetExecutablePath(char* buf, unsigned len) {
     int ret = (int)readlink("/proc/self/exe", buf, len);
     //  On error return straight
-    if (ret == len || ret < 0) return -1;
+    if ((unsigned)ret >= len || ret < 0) return -1;
 
     //  Strip name of the executable from the read link
     while (buf[ret] != '/') buf[ret--] = '\0';

@@ -303,8 +303,8 @@ bool ActiveCollided(game* ptr) {
             block* cur = act->blocks[i];
             unsigned x = cur->x+tx;
             unsigned y = cur->y+ty;
-            if (x < 0 || x >= w) return true; // To left or right border
-            if (y < 0 || y >= h) return true; // To bottom or top
+            if (x >= w) return true; // To left or right border
+            if (y >= h) return true; // To bottom or top
 
             //  Check collision to other blocks
             unsigned pos = y*w + x;
