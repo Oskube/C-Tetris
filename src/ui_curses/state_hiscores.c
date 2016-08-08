@@ -76,7 +76,7 @@ int StateInit(WINDOW* w, void** data) {
     if (entry != NULL) {
         unsigned rank = HISCORE_LENGTH;
         if(entry->score > 0) {
-            rank = GetRanking(scoreTable, HISCORE_LENGTH, entry->score);
+            rank = GetRanking(scoreTable, HISCORE_LENGTH, entry);
         }
         if (rank < HISCORE_LENGTH) {
             mvwprintw(w, 15, getmaxx(win)/2-12, "NEW HISCORE, %d. PLACE.", rank+1);

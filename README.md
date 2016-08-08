@@ -37,4 +37,3 @@ r     | New game (High score view only)
 List of known issues:
 - Randomiser can only be changed by modifying source code
 - Random seed isn't initialized atm
-- High score sorting is bad

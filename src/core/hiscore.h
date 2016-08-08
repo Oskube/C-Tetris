@@ -41,7 +41,7 @@ extern int AddScoreToList(hiscore_list_entry* ptrTable, unsigned len, hiscore_li
     \brief Gets ranking with current score
     \param ptrTable Pointer to hi score table
     \param len Lenght of array
-    \param score Score to be tested
+    \param ptrEntry Pointer to the entry
     \return Ranking starting from 0
 */
-extern int GetRanking(hiscore_list_entry* ptrTable, unsigned len, unsigned score);
+extern unsigned GetRanking(hiscore_list_entry* ptrTable, unsigned len, hiscore_list_entry* ptrEntry);

@@ -20,6 +20,7 @@
 */
 
 static unsigned ShiftScores(hiscore_list_entry* ptrTable, unsigned len, unsigned int pos);
+static int CompareEntry(hiscore_list_entry* a, hiscore_list_entry *b);
 
 int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
     //  Try opening file
@@ -127,8 +128,8 @@ int SaveHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
 
 int AddScoreToList(hiscore_list_entry* ptrTable, unsigned len, hiscore_list_entry *ptrEntry) {
     if (!ptrEntry) return -2;
-    int rank = GetRanking(ptrTable, len, ptrEntry->score);
-    if (rank >= 0 && rank < len) {
+    unsigned rank = GetRanking(ptrTable, len, ptrEntry);
+    if (rank < len) {
         //  Shift and copy values
         ShiftScores(ptrTable, len, rank);
 
@@ -146,11 +147,14 @@ int AddScoreToList(hiscore_list_entry* ptrTable, unsigned len, hiscore_list_entr
     return rank;
 }
 
-int GetRanking(hiscore_list_entry* ptrTable, unsigned len, unsigned score) {
-    if (!ptrTable) return -1;
-    int rank = 0;
+unsigned GetRanking(hiscore_list_entry* ptrTable, unsigned len, hiscore_list_entry* ptrEntry) {
+    if (!ptrTable) return len;
+    unsigned rank = 0;
 
-    for (; rank < len && score < ptrTable[rank].score; rank++);
+    while (rank < len) {
+        if (CompareEntry(&ptrTable[rank], ptrEntry) == -1) break;
+        rank++;
+    }
 
     return rank;
 }
@@ -183,5 +187,32 @@ unsigned ShiftScores(hiscore_list_entry* ptrTable, unsigned len, unsigned int po
         ptrTable[cur].name[15] = '\0';
         cur--;
     }
+    return 0;
+}
+
+/**
+    \brief Compares 2 given entries
+    \param a Pointer to entry
+    \param b Pointer to entry
+    \param 1 if a > b, 0 if same, -1 if b > a
+*/
+int CompareEntry(hiscore_list_entry* a, hiscore_list_entry *b) {
+    if (!a || !b) return 0;
+    if (a == b) return 0;
+
+    int tmp = a->score - b->score;
+    //  Compare score
+    if (tmp > 0) return 1;  //  a is better
+    else if (tmp < 0) return -1; // b is better
+
+    // Same score --> compare time
+    tmp = a->time - b->time;
+    if (tmp < 0) return 1;
+    else if (tmp > 0) return -1;
+
+    // Same time --> compare date
+    if (a->date < b->date) return 1;
+    else if (a->date > b->date) return -1;
+
     return 0;
 }
