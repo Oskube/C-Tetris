@@ -19,6 +19,7 @@ static bool ClearAndCollapse(game_map* ptr, unsigned row);
 static tetromino* TetrominoNew(tetromino_shape shape, unsigned x);
 static int TetrominoMove(game* ptr, player_input dir);
 static int TetrominoRotate(game* ptr);
+static int TetrominoRotateKick(game* ptr);
 static void TetrominoFree(tetromino* ptr);
 static int CalcGhost(game* ptr);
 static void HardDrop(game* ptr);
@@ -135,17 +136,20 @@ int ProcessInput(game* ptr, player_input input) {
     tetromino* act = ptr->active;
     if (!act) return 0;
 
+    int ret = 0;
     switch (input) {
         case INPUT_LEFT:
         case INPUT_RIGHT: {
-            return TetrominoMove(ptr, input);
-        }
+            ret = TetrominoMove(ptr, input);
+        } break;
         case INPUT_DOWN: ptr->nextUpdate = 0; break;
-        case INPUT_ROTATE: return TetrominoRotate(ptr);
+        case INPUT_ROTATE: {
+            ret = TetrominoRotateKick(ptr);
+        } break;
         case INPUT_SET: HardDrop(ptr); break;
         default: break;
     }
-    return 0;
+    return ret;
 }
 
 void FreeGame(game* ptr) {
@@ -479,6 +483,45 @@ int TetrominoRotate(game* ptr) {
     //  Recalculate ghost
     CalcGhost(ptr);
     return 0;
+}
+
+/**
+    \brief Rotates clock wise with a wall kick
+    \param Pointer to game instance
+    \return 0 on success
+*/
+int TetrominoRotateKick(game* ptr) {
+    int ret = 0;
+    ret = TetrominoRotate(ptr);
+    if (ret == 0) return ret;
+
+    unsigned origX = ptr->active->x;
+
+    //  Wall kicking
+    //  Move right and try rotate
+    ptr->active->x = origX+1;
+    ret = TetrominoRotate(ptr);
+    if (ret == 0) return ret; // Return if success
+
+    //  Move left and try rotate
+    ptr->active->x = origX-1;
+    ret = TetrominoRotate(ptr);
+    if (ret == 0) return ret;
+
+    //  The Shape I is a special case
+    if (ptr->active->shape == SHAPE_I) {
+        ptr->active->x = origX+2;
+        ret = TetrominoRotate(ptr);
+        if (ret == 0) return ret;
+
+        ptr->active->x = origX-2;
+        ret = TetrominoRotate(ptr);
+        if (ret == 0) return ret;
+    }
+
+    //  All tried rotations failed -> restore original position
+    ptr->active->x = origX;
+    return ret;
 }
 
 /**
