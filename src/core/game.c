@@ -541,7 +541,7 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
     }
 
     ret->x = x-1;
-    ret->y = 0;
+    ret->y = 2; //  2 top rows are hidden
     ret->shape = shape;
     // ret->count = 0;
 
@@ -559,6 +559,7 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
             ret->blocks[2]->y = 1;
             ret->blocks[3]->x = 1;
             ret->blocks[3]->y = 1;
+            ret->y -= 1;
         } break;
         case SHAPE_I: {
             ret->blocks[1]->x = -1;
@@ -569,35 +570,30 @@ tetromino* TetrominoNew(tetromino_shape shape, unsigned x) {
             ret->blocks[1]->y = -1;
             ret->blocks[2]->x = 1;
             ret->blocks[3]->x = -1;
-            ret->y = 1;
         } break;
         case SHAPE_L: {
             ret->blocks[1]->x = -1;
             ret->blocks[2]->x = 1;
             ret->blocks[3]->x = 1;
             ret->blocks[3]->y = -1;
-            ret->y = 1;
         } break;
         case SHAPE_J: {
             ret->blocks[1]->x = -1;
             ret->blocks[2]->x = 1;
             ret->blocks[3]->x = -1;
             ret->blocks[3]->y = -1;
-            ret->y = 1;
         } break;
         case SHAPE_S: {
             ret->blocks[1]->x = -1;
             ret->blocks[2]->y = -1;
             ret->blocks[3]->x = 1;
             ret->blocks[3]->y = -1;
-            ret->y = 1;
         } break;
         case SHAPE_Z: {
             ret->blocks[1]->x = 1;
             ret->blocks[2]->y = -1;
             ret->blocks[3]->x = -1;
             ret->blocks[3]->y = -1;
-            ret->y = 1;
         } break;
         default: break; // Shouldn't happen
     }

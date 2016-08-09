@@ -103,7 +103,7 @@ int StateInit(WINDOW* win, void** data) {
         return -2;
     }
 
-    gme = Initialize(MAP_WIDTH, MAP_HEIGHT, RANDOMISER_TGM, GetTime);
+    gme = Initialize(MAP_WIDTH, MAP_HEIGHT+2, RANDOMISER_TGM, GetTime);
     if (!gme) {
         fprintf(stderr, "CORE: Couldn't initialize game");
         delwin(map);
@@ -141,7 +141,8 @@ void DrawMap(game* src, WINDOW* dst, bool showghost) {
     unsigned len = w*h;
     unsigned row = 1;
     wmove(dst, row, 1);
-    for (unsigned i = 0; i < len; i++) {
+    //  Two top rows are hidden so start from 2*w
+    for (unsigned i = w*2; i < len; i++) {
         if (mask[i]) {
             waddch(dst, symbols[mask[i]->symbol]);
         } else {
@@ -164,16 +165,22 @@ void DrawMap(game* src, WINDOW* dst, bool showghost) {
             x[i] = mask[i]->x+1;
         }
         if (showghost) {
-            mvwaddch(dst, y[0]+src->info.ghostY, x[0]+src->active->x, ':');
-            mvwaddch(dst, y[1]+src->info.ghostY, x[1]+src->active->x, ':');
-            mvwaddch(dst, y[2]+src->info.ghostY, x[2]+src->active->x, ':');
-            mvwaddch(dst, y[3]+src->info.ghostY, x[3]+src->active->x, ':');
+            for (unsigned i=0; i < 4; i++) {
+                unsigned cy = y[i]+src->info.ghostY;
+                // Top 2 rows are hidden
+                if (cy > 2) {
+                    mvwaddch(dst, cy-2, x[i]+src->active->x, ':');
+                }
+            }
         }
 
-        mvwaddch(dst, y[0]+src->active->y, x[0]+src->active->x, sym);
-        mvwaddch(dst, y[1]+src->active->y, x[1]+src->active->x, sym);
-        mvwaddch(dst, y[2]+src->active->y, x[2]+src->active->x, sym);
-        mvwaddch(dst, y[3]+src->active->y, x[3]+src->active->x, sym);
+        for (unsigned i=0; i < 4; i++) {
+            unsigned cy = y[i]+src->active->y;
+            // Top 2 rows are hidden
+            if (cy > 2) {
+                mvwaddch(dst, cy-2, x[i]+src->active->x, sym);
+            }
+        }
     }
 }
 

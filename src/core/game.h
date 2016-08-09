@@ -101,6 +101,7 @@ typedef struct {
     \return Pointer to new game instance
 
     \remark You must use FreeGame() to free allocated memory.
+    \note 2 top rows are expected to be hidden.
 */
 extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fntime)());
 
