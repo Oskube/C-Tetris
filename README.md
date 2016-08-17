@@ -9,6 +9,7 @@ Some of the implemented features:
   - Random
 - Ghost piece
 - Hard drop
+- Wall kick
 
 ![Screenshot](./curses_ui.png)
 

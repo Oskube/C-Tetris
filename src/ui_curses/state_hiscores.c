@@ -93,7 +93,7 @@ int StateInit(WINDOW* w, void** data) {
         }
         *data = NULL;
     }
-    DrawHiscores(win, 1, 5, scoreTable, HISCORE_LENGTH);
+    DrawHiscores(win, 1, 3, scoreTable, HISCORE_LENGTH);
     return 0;
 }
 
@@ -106,8 +106,9 @@ void DrawHiscores(WINDOW* dst, unsigned topy, unsigned topx, hiscore_list_entry*
     mvwprintw(dst, topy, topx, "#");
     mvwprintw(dst, topy, topx+3, "NAME");
     mvwprintw(dst, topy, topx+20, "SCORE");
-    mvwprintw(dst, topy, topx+30, "LVL");
-    mvwprintw(dst, topy, topx+35, "TIME");
+    mvwprintw(dst, topy, topx+30, "LINES");
+    mvwprintw(dst, topy, topx+37, "LVL");
+    mvwprintw(dst, topy, topx+41, "TIME");
     mvwprintw(dst, topy++, topx+50, "DATE");
     for (unsigned i=0; i<len; i++, topy++) {
         time_t date = (time_t)list[i].date;
@@ -119,8 +120,9 @@ void DrawHiscores(WINDOW* dst, unsigned topy, unsigned topx, hiscore_list_entry*
         mvwprintw(dst, topy, topx, "%d", i+1);
         mvwprintw(dst, topy, topx+3, "%s", list[i].name);
         mvwprintw(dst, topy, topx+20, "%d", list[i].score);
-        mvwprintw(dst, topy, topx+30, "%d", list[i].lvl);
-        mvwprintw(dst, topy, topx+35, "%d:%02d.%d", min, sec, tenth);
+        mvwprintw(dst, topy, topx+30, "%d", list[i].rows);
+        mvwprintw(dst, topy, topx+37, "%d", list[i].lvl);
+        mvwprintw(dst, topy, topx+41, "%d:%02d.%d", min, sec, tenth);
         mvwprintw(dst, topy, topx+50, "%s", ctime(&date));
     }
 }
