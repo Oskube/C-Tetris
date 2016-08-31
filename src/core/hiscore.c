@@ -4,7 +4,7 @@
 #include "hiscore.h"
 #include "file_misc.h" /* CalcCRC32(), DecodeBigendian(), EncodeBigendian() */
 
-#define HEADER_LEN (sizeof(unsigned)*3)
+#define HEADER_LEN 3
 #define HEADER_SIG 0x2666
 #define HEADER_VER 1
 
@@ -16,7 +16,7 @@
     12-n bytes -> data
     n+1-n+4 bytes  -> CRC32 of the file
 
-    Hi scores are ordered from best to last
+    Hi scores are ordered from best to worst
 */
 
 static unsigned ShiftScores(hiscore_list_entry* ptrTable, unsigned len, unsigned int pos);
@@ -33,7 +33,7 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
     fseek(ptrFile, 0, SEEK_SET); // rewind
 
     //  Allocate memory for the buffer, read file and close it
-    char* buffer = (char*)malloc(sizeof(char)*fLen);
+    unsigned* buffer = (unsigned*)malloc(sizeof(char)*fLen);
     if (!buffer) {
         fclose(ptrFile);
         return -1;
@@ -44,16 +44,16 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
 
     fclose(ptrFile);
     //  Check CRC32 of the file
-    unsigned crc32 = CalcCRC32(buffer, fLen-4);
-    if (crc32 != DecodeBigendian(*(unsigned*)(buffer+fLen-4))) {
+    unsigned crc32 = CalcCRC32((char*)buffer, fLen-4);
+    if (crc32 != DecodeBigendian(*(unsigned*)((char*)buffer+fLen-4))) {
         return -4;
     }
 
     //  Check signature and version
-    char* p = buffer;
-    char* end = buffer+fLen-4; // data end, 1st byte of crc32
-    if (DecodeBigendian(*(unsigned*)(p)) != HEADER_SIG ||
-        DecodeBigendian(*(unsigned*)(p+4)) != HEADER_VER
+    unsigned* p = buffer;
+    unsigned* end = buffer+fLen-4; // data end, 1st byte of crc32
+    if (DecodeBigendian(*p) != HEADER_SIG ||
+        DecodeBigendian(*(p+4)) != HEADER_VER
     ) {
         free(buffer);
         return -3;
@@ -62,17 +62,19 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
     p += HEADER_LEN;
 
     for (unsigned cur=0; p != end && cur < len; cur++) {
-        ptrTable[cur].score = DecodeBigendian(*(unsigned*)(p));
-        ptrTable[cur].rows  = DecodeBigendian(*(unsigned*)(p+4));
-        ptrTable[cur].lvl   = DecodeBigendian(*(unsigned*)(p+8));
-        ptrTable[cur].time  = DecodeBigendian(*(unsigned*)(p+12));
-        ptrTable[cur].date  = DecodeBigendian(*(unsigned*)(p+16));
-        p += 20;
+        ptrTable[cur].score = DecodeBigendian(*p);
+        ptrTable[cur].rows  = DecodeBigendian(*(p+1));
+        ptrTable[cur].lvl   = DecodeBigendian(*(p+2));
+        ptrTable[cur].time  = DecodeBigendian(*(p+3));
+        ptrTable[cur].date  = DecodeBigendian(*(p+4));
+        p += 5;
 
         //  Copy name
-        for (unsigned i=0; i<16; p++, i++) {
-            ptrTable[cur].name[i] = *p;
+        char* pp = (char*)p;
+        for (unsigned i=0; i<16; pp++, i++) {
+            ptrTable[cur].name[i] = *pp;
         }
+        p = (unsigned*)pp;
         ptrTable[cur].name[15] = '\0'; // Lets ensure string is terminated with '\0'
     }
 
@@ -82,39 +84,42 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
 
 int SaveHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
     //  Calculate lenght for buffer, header+list+crc32
-    size_t bufLen = HEADER_LEN + sizeof(hiscore_list_entry)*len + sizeof(unsigned);
-    char* buffer = (char*)calloc(bufLen, bufLen);
+    size_t bufLen = HEADER_LEN*sizeof(unsigned) + sizeof(hiscore_list_entry)*len + sizeof(unsigned);
+    unsigned* buffer = (unsigned*)calloc(bufLen, sizeof(char));
     if (!buffer) return -1;
 
     //  Write file header to buffer
-    char* p = buffer;
-    *((unsigned int*)p)   = EncodeBigendian(HEADER_SIG);
-    *((unsigned int*)p+1) = EncodeBigendian(HEADER_VER);
-    *((unsigned int*)p+2) = EncodeBigendian((unsigned)sizeof(hiscore_list_entry)*len);
+    unsigned* p = buffer;
+    *p     = EncodeBigendian(HEADER_SIG);
+    *(p+1) = EncodeBigendian(HEADER_VER);
+    *(p+2) = EncodeBigendian((unsigned)sizeof(hiscore_list_entry)*len);
     p += HEADER_LEN;
 
     //  Write scores to buffer
     for (unsigned cur = 0; cur < len; cur++) {
         // score, rows, level, time, date
-        *((unsigned int*)p)    = EncodeBigendian(ptrTable[cur].score);
-        *((unsigned int*)p+1)  = EncodeBigendian(ptrTable[cur].rows);
-        *((unsigned int*)p+2)  = EncodeBigendian(ptrTable[cur].lvl);
-        *((unsigned int*)p+3)  = EncodeBigendian(ptrTable[cur].time);
-        *((unsigned int*)p+4)  = EncodeBigendian(ptrTable[cur].date);
-        p += 20;
+        *p      = EncodeBigendian(ptrTable[cur].score);
+        *(p+1)  = EncodeBigendian(ptrTable[cur].rows);
+        *(p+2)  = EncodeBigendian(ptrTable[cur].lvl);
+        *(p+3)  = EncodeBigendian(ptrTable[cur].time);
+        *(p+4)  = EncodeBigendian(ptrTable[cur].date);
+        p += 5;
 
         // name, write 16 bytes even if the name is shorter
         unsigned i=0;
-        for (; i<16; p++, i++) {
-            *p = ptrTable[cur].name[i];
-            if (*p == '\0') break;
+        char* pp = (char*)p;
+        for (; i<16; pp++, i++) {
+            *pp = ptrTable[cur].name[i];
+            if (*pp == '\0') break;
         }
-        for(; i<16; p++, i++) *p = 0;
+        for(; i<16; pp++, i++) *pp = 0;
+
+        p = (unsigned*)pp;
     }
 
     //  Calculate CRC32 for the buffer and append it to end
-    unsigned crc32 = CalcCRC32(buffer, bufLen-4);
-    *((unsigned*)(buffer+bufLen-4)) = EncodeBigendian(crc32);
+    unsigned crc32 = CalcCRC32((char*)buffer, bufLen-4);
+    *(unsigned*)((char*)buffer+bufLen-4) = EncodeBigendian(crc32);
     // printf("0x%08x\n", crc32);
 
     //   Open file for writing
