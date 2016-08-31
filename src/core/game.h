@@ -1,4 +1,5 @@
 #include "game_randomisers.h"
+#include "demo.h"
 
 /**
     \brief Enumerated type for different inputs which can be passed to game
@@ -90,6 +91,8 @@ typedef struct {
     unsigned nextUpdate; /**< Time of next update */
     unsigned step; /**< Time step between updates */
     unsigned (*fnMillis)(); /**< Function used to get current time in milliseconds */
+
+    demo* demorecord;
 } game;
 
 /**

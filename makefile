@@ -8,7 +8,8 @@ ODIR = obj
 CORE = game_randomisers.o \
 	   game.o \
 	   file_misc.o \
-	   hiscore.o
+	   hiscore.o \
+	   demo.o
 CORE := $(addprefix $(ODIR)/core/, $(CORE))
 
 CURSES = state_hiscores.o \

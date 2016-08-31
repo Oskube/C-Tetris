@@ -1,7 +1,7 @@
-#include "game.h"
-
 #include <stdlib.h>
 #include <stdbool.h>
+
+#include "game.h"
 
 #define MIN_DELAY_LEVEL 10
 #define MAX_DELAY 1200
@@ -40,6 +40,7 @@ game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, un
     ptrGame->info.fnRandomiserInit = NULL;
     ptrGame->info.fnRandomiserNext = NULL;
     ptrGame->fnMillis = fntime;
+    ptrGame->demorecord = NULL;
 
     //  Allocate memory for blockmask and initialize it 0
     ptrGame->map.blockMask = (block**)calloc(width*height, sizeof(block*) * width*height);
@@ -113,6 +114,8 @@ int Update(game* ptr) {
         //  Create a new next tetromino
         tetromino_shape shape = s->fnRandomiserNext(s->randomiser_data);
         s->next = TetrominoNew(shape, ptr->map.width/2);
+        //  Add it to the demo record
+        DemoAddPiece(ptr->demorecord, s->next->shape);
 
         //  Calculate ghost for the new active tetromino
         CalcGhost(ptr);
@@ -135,6 +138,9 @@ int ProcessInput(game* ptr, player_input input) {
 
     tetromino* act = ptr->active;
     if (!act) return 0;
+
+    //  Add input to the demo record
+    DemoAddInstruction(ptr->demorecord, ptr->fnMillis() - ptr->info.timeStarted, (unsigned int)input);
 
     int ret = 0;
     switch (input) {
@@ -173,6 +179,11 @@ void FreeGame(game* ptr) {
     }
     free(ptr->map.blockMask);
 
+    //  Free recorded demo
+    DemoSave(ptr->demorecord, "demo.dm");
+    DemoFree(ptr->demorecord);
+    ptr->demorecord = NULL;
+
     //  Free game struct
     free(ptr);
 }
@@ -205,6 +216,11 @@ void ResetGame(game* ptr) {
     ptr->step = MAX_DELAY;
     ptr->nextUpdate = ptr->fnMillis() + ptr->step;
 
+    //  Demo record init
+    DemoFree(ptr->demorecord);
+    ptr->demorecord = NULL;
+    ptr->demorecord = DemoCreateInstance();
+
     // Free active tetromino
     if (ptr->active) TetrominoFree(ptr->active);
 
@@ -219,6 +235,10 @@ void ResetGame(game* ptr) {
 
     shape = s->fnRandomiserNext(s->randomiser_data);
     s->next = TetrominoNew(shape, ptr->map.width/2);
+
+    //  record first 2 shapes to demo
+    DemoAddPiece(ptr->demorecord, ptr->active->shape);
+    DemoAddPiece(ptr->demorecord, s->next->shape);
 
     //  Calculate ghost
     CalcGhost(ptr);
