@@ -1,4 +1,5 @@
 #include <ctype.h> /* tolower() */
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "states.h"
@@ -69,6 +70,7 @@ void* StatePlayDemo(WINDOW* win, void** data) {
 int StateInit(WINDOW* win, void** data) {
     if (!data) return -1;
     demoPath = *data;
+    *data = NULL;
     if (!demoPath) return -2;
 
     if (GameWindowsInit(win, &windows)) {
@@ -78,6 +80,7 @@ int StateInit(WINDOW* win, void** data) {
     //  Load demo file
     record = DemoRead(demoPath);
     if (!record) {
+        fprintf(stderr, "Failed to load demo %s\n", demoPath);
         return -3;
     }
 

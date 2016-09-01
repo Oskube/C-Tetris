@@ -1,1 +1,1 @@
-extern int MainCurses();
+extern int MainCurses(int argc, char** argv);
