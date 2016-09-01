@@ -13,6 +13,7 @@ CORE = game_randomisers.o \
 CORE := $(addprefix $(ODIR)/core/, $(CORE))
 
 CURSES = state_hiscores.o \
+		 game_functions.o \
 		 state_game.o \
 		 curses_main.o \
 		 os_linux.o
