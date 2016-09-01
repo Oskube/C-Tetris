@@ -6,13 +6,16 @@ unsigned RandomBagNext(void* bag) {
     randombag* b = (randombag*) bag;
 
     //  If bag emptied generate a new permutation
-    if (++(b->next) >= 7) {
+    if (b->next >= 7) {
         RandomBagInit(b);
     }
-    return b->tetrominos[b->next];
+
+    unsigned ret = b->tetrominos[b->next];
+    b->next += 1;
+    return ret;
 }
 
-unsigned RandomBagInit(void* bag) {
+void* RandomBagInit(void* bag) {
     if (bag == NULL) return 0;
     randombag* b = (randombag*) bag;
     b->next = 0;
@@ -29,10 +32,10 @@ unsigned RandomBagInit(void* bag) {
         b->tetrominos[i] = b->tetrominos[other];
         b->tetrominos[other] = tmp;
     }
-    return b->tetrominos[b->next];
+    return b;
 }
 
-unsigned RandomTGMInit(void* data) {
+void* RandomTGMInit(void* data) {
     if (data == NULL) return 0;
     randomiser_TGM_data* d = (randomiser_TGM_data*) data;
 
@@ -42,7 +45,7 @@ unsigned RandomTGMInit(void* data) {
     d->history[3] = 6; // Z
 
     d->max_tries = 4;
-    return RandomTGMNext(data);
+    return data;
 }
 
 unsigned RandomTGMNext(void* data) {
@@ -73,8 +76,8 @@ unsigned RandomTGMNext(void* data) {
     return ret;
 }
 
-unsigned RandomRandomInit(void* data) {
-    return RandomRandomNext(data);
+void* RandomRandomInit(void* data) {
+    return NULL;
 }
 
 unsigned RandomRandomNext(void* data) {

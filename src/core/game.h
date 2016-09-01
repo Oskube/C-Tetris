@@ -76,7 +76,7 @@ typedef struct {
 
     tetromino* next;     /**< The next tetromino */
     void* randomiser_data; /**< The data used by randomiser functions */
-    unsigned (*fnRandomiserInit)(void*); /**< Function pointer to randomiser init */
+    void* (*fnRandomiserInit)(void*); /**< Function pointer to randomiser init */
     unsigned (*fnRandomiserNext)(void*); /**< Function pointer to randomiser next */
 } game_info;
 

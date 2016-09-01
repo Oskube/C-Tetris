@@ -20,9 +20,9 @@ typedef struct {
     \brief Bag randomiser initializer
     Initializes data and generates permutation
     \param bag Pointer to the randomiser data
-    \return First shape in permutation, doesn't increase next counter
+    \return Return a pointer to the randomiser data
 */
-extern unsigned RandomBagInit(void* bag);
+extern void* RandomBagInit(void* bag);
 /**
     \brief Bag randomiser processing
     \param bag Pointer to the randomiser data
@@ -42,9 +42,9 @@ typedef struct {
     \brief TGM randomiser initialize
     Fills history with OZSZ
     \param A pointer to the randomiser data
-    \return Shape of tetromino
+    \return Return a pointer to the randomiser data
 */
-extern unsigned RandomTGMInit(void* data);
+extern void* RandomTGMInit(void* data);
 /**
     \brief Get next tetromino
     \param A pointer to the randomiser data
@@ -53,11 +53,11 @@ extern unsigned RandomTGMInit(void* data);
 extern unsigned RandomTGMNext(void* data);
 
 /**
-    \brief Get next random tetromino
+    \brief Total random randomizer init
     \param data should be NULL
-    \return Shape of next tetromino
+    \return NULL
 */
-extern unsigned RandomRandomInit(void* data);
+extern void* RandomRandomInit(void* data);
 /**
     \brief Get next random tetromino
     \param data should be NULL

@@ -228,8 +228,9 @@ void ResetGame(game* ptr) {
     if (s->next) TetrominoFree(s->next);
 
     //  Create new randoms
-    tetromino_shape shape = s->fnRandomiserInit(s->randomiser_data);
+    s->randomiser_data = s->fnRandomiserInit(s->randomiser_data);
     //  Create first and next tetromino
+    tetromino_shape shape = s->fnRandomiserNext(s->randomiser_data);
     ptr->active = TetrominoNew(shape, ptr->map.width/2);
     s->countTetromino[ptr->active->shape] += 1;
 
