@@ -1,6 +1,7 @@
 #include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h> /* usleep() */
 
 #include "curses_main.h"
@@ -18,6 +19,7 @@ int MainCurses() {
     void** data = (void**)malloc(sizeof(void*));
     *data = NULL;
     CurrentState = StateGame;
+
     while (CurrentState != NULL) {
         CurrentState = CurrentState(win, data);
 
@@ -25,7 +27,7 @@ int MainCurses() {
         wrefresh(win); /* Update terminal */
         usleep(1000);
     }
-    
+
     free(data);
     endwin();
     return 0;

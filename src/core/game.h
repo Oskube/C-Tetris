@@ -100,13 +100,25 @@ typedef struct {
     \param width The width of new game area
     \param height The height of new game area
     \param randomiser Randomiser used in tetromino creation
-    \param fntime Function pointer to a time function
+    \param fnTime Function pointer to a time function
     \return Pointer to new game instance
 
     \remark You must use FreeGame() to free allocated memory.
     \note 2 top rows are expected to be hidden.
 */
-extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fntime)());
+extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fnTime)());
+
+/**
+    \brief Intialize demo playback
+    \param width The width of new game area
+    \param height The height of new game area
+    \param fnTime Function pointer to a time function
+    \param record Pointer to the demo record
+    \return Pointer to the game instance
+
+    \remark You must use FreeGame() to free allocated memory.
+*/
+extern game* InitDemoGame(unsigned width, unsigned height, unsigned (*fnTime)(), demo* record);
 
 /**
     \brief Process one step of game logic

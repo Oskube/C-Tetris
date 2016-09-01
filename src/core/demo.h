@@ -61,3 +61,21 @@ extern unsigned DemoSave(demo* ptr, const char* path);
     \note Use DemoFree() to delete instance
 */
 extern demo* DemoRead(const char* path);
+
+typedef struct {demo_list* current;} demo_rand_data;
+
+/**
+    \brief Initializes tetromino queue for the demo playback
+    \param demo Pointer to the demo instance
+    \return The shape of the first tetromino
+    \note Doesn't copy the demo struct or free given data
+*/
+extern void* DemoRandomizerInit(void* demo);
+
+/**
+    \brief Get the next tetromino recorded in demo
+    \param Pointer to the list of tetrominos
+    \return The shape of the next tetromino
+    \note Modifies piecesCurrent pointer
+*/
+extern unsigned DemoRandomizerNext(void* data);

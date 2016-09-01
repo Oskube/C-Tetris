@@ -24,8 +24,8 @@ static void TetrominoFree(tetromino* ptr);
 static int CalcGhost(game* ptr);
 static void HardDrop(game* ptr);
 
-game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fntime)()) {
-    if (width == 0 || height == 0 || fntime == NULL) return NULL;
+game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fnTime)()) {
+    if (width == 0 || height == 0 || fnTime == NULL) return NULL;
     game* ptrGame = (game*)malloc(sizeof(game));
     if (!ptrGame) return NULL;
 
@@ -39,7 +39,7 @@ game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, un
     ptrGame->info.randomiser_data = NULL;
     ptrGame->info.fnRandomiserInit = NULL;
     ptrGame->info.fnRandomiserNext = NULL;
-    ptrGame->fnMillis = fntime;
+    ptrGame->fnMillis = fnTime;
     ptrGame->demorecord = NULL;
 
     //  Allocate memory for blockmask and initialize it 0
@@ -57,6 +57,35 @@ game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, un
 
     ResetGame(ptrGame);
     return ptrGame;
+}
+
+game* InitDemoGame(unsigned width, unsigned height, unsigned (*fnTime)(), demo* record) {
+    if (!record) return NULL;
+
+    //  Initialize game like always
+    game* ret = Initialize(width, height, RANDOMISER_RANDOM, fnTime);
+    if (!ret) return NULL;
+    game_info* info = &ret->info;
+
+    //  Change randomiser set by initializer to demo's tetromino queue
+    info->fnRandomiserInit = DemoRandomizerInit;
+    info->fnRandomiserNext = DemoRandomizerNext;
+    info->randomiser_data = DemoRandomizerInit(record);
+
+    //  Reset statistics and free already generated tetrominos
+    info->countTetromino[ret->active->shape] = 0;
+    TetrominoFree(ret->active);
+    TetrominoFree(info->next);
+
+    //  Generate new active and next tetrominos
+    tetromino_shape shape = DemoRandomizerNext(info->randomiser_data);
+    ret->active = TetrominoNew(shape, ret->map.width/2);
+    info->countTetromino[ret->active->shape] += 1;
+
+    shape = DemoRandomizerNext(info->randomiser_data); // next
+    info->next = TetrominoNew(shape, ret->map.width/2);
+
+    return ret;
 }
 
 int Update(game* ptr) {

@@ -183,21 +183,39 @@ demo* DemoRead(const char* path) {
 
     //  Create demo instance
     demo* ret = DemoCreateInstance();
+    if (ret) {
+        //  Extract all pieces
+        for (unsigned* end=pos+pieces; pos != end; pos++) {
+            DemoAddPiece(ret, *pos);
+        }
 
-    //  Extract all pieces
-    for (unsigned* end=pos+pieces; pos != end; pos++) {
-        DemoAddPiece(ret, *pos);
-    }
-
-    //  Extract all instructions
-    for (unsigned* end=pos+instrs*2; pos != end; pos+=2) {
-        unsigned time = *pos;
-        unsigned instruction = *(pos+1);
-        DemoAddInstruction(ret, time, instruction);
+        //  Extract all instructions
+        for (unsigned* end=pos+instrs*2; pos != end; pos+=2) {
+            unsigned time = *pos;
+            unsigned instruction = *(pos+1);
+            DemoAddInstruction(ret, time, instruction);
+        }
     }
 
     // Free buffer and return demo instance
     free(buffer);
+    return ret;
+}
+
+void* DemoRandomizerInit(void* data) {
+    demo_list* d = ((demo*)data)->piecesFirst;
+    demo_rand_data* da = (demo_rand_data*)malloc(sizeof(demo_rand_data));
+    da->current = d;
+    return da;
+}
+
+unsigned DemoRandomizerNext(void* data) {
+    if (!data) return 0;
+    demo_rand_data* d = data;
+    if (!d->current) return 0;  // If end of list
+
+    unsigned ret = *(unsigned*)d->current->value; // Get shape
+    d->current = d->current->next; // Set pointer to next element
     return ret;
 }
 

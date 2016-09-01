@@ -4,6 +4,10 @@
 #define HISCORE_LENGTH 10
 #define HISCORE_FILE "hiscores"
 
+/*
+    States must free the additional data passed!
+*/
+
 /**
     \brief State function which handles gameplay
 
@@ -27,9 +31,9 @@ extern void* StateHiscores(WINDOW* win, void** data);
 /**
     \brief State function which handles playing recorded demo
 
-    Additional data should have path to demo.
+    Additional data should have path to the demo. char* terminated by '\0'
     \param win Pointer to ncurse WINDOW
     \param data Additional data used by state
     \return Function pointer to the next state
 */
-// extern void* StatePlayDemo(WINDOW* win, void** data);
+extern void* StatePlayDemo(WINDOW* win, void** data);
