@@ -41,7 +41,7 @@ void* StateHiscores(WINDOW* win, void** data) {
         noecho();
         curs_set(0);
         clear();
-        DrawHiscores(win, 1, 5, scoreTable, HISCORE_LENGTH);
+        DrawHiscores(win, 1, 3, scoreTable, HISCORE_LENGTH);
     }
 
     int input = getch();
