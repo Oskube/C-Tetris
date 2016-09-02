@@ -19,6 +19,7 @@ static bool is_running = false;
 static ncurse_game_windows windows = {.map = NULL, .info = NULL};
 static game* gme = NULL;
 static bool alreadySaved = false;
+static state_game_data settings = {0}; /* Game settings, stays same until changed */
 
 //  State code
 void* StateGame(WINDOW* win, void** data) {
@@ -78,12 +79,20 @@ int StateInit(WINDOW* win, void** data) {
         return -2;
     }
 
-    gme = Initialize(MAP_WIDTH, MAP_HEIGHT+2, RANDOMISER_TGM, GetTime);
+    //  Copy settings if any
+    if (*data) {
+        settings = *((state_game_data*)*data);
+        free(*data);
+        *data = NULL;
+    }
+
+    gme = Initialize(MAP_WIDTH, MAP_HEIGHT+2, settings.randomiser, GetTime);
     if (!gme) {
         fprintf(stderr, "CORE: Couldn't initialize game");
         GameWindowsFree(&windows);
         return -3;
     }
+
     alreadySaved = false;
     return 0;
 }

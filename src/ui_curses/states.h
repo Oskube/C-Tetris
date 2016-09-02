@@ -5,14 +5,18 @@
 #define HISCORE_FILE "hiscores"
 
 /*
-    States must free the additional data passed!
+    !States must free the additional data passed!
 */
+
+typedef struct {
+    unsigned randomiser;
+} state_game_data;
 
 /**
     \brief State function which handles gameplay
 
-    Takes no additional data in. When state ends it transitions to StateHiscores
-    with additional data.
+    Can take additional data as *state_game_data. When state ends it
+    transitions to StateHiscores with additional data.
     \param win Pointer to ncurse WINDOW
     \param data Additional data used by state
     \return Function pointer to the next state
