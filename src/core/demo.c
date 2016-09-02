@@ -108,16 +108,16 @@ unsigned DemoSave(demo* ptr, const char* path) {
 
     unsigned* pos = buf;
     // Write header
-    *pos = DEMO_SIG;
-    *(pos+1) = DEMO_VER;
-    *(pos+2) = ptr->piecesCount; //  Write count of pieces
-    *(pos+3) = ptr->instrsCount; //  Write count of instructions
+    *pos = EncodeBigendian(DEMO_SIG);
+    *(pos+1) = EncodeBigendian(DEMO_VER);
+    *(pos+2) = EncodeBigendian(ptr->piecesCount); //  Write count of pieces
+    *(pos+3) = EncodeBigendian(ptr->instrsCount); //  Write count of instructions
     pos += 4;
 
     //  Write all pieces to the buffer
     demo_list* list = ptr->piecesFirst;
     while (list != NULL) {
-        *pos = *(unsigned*)list->value;
+        *pos = EncodeBigendian(*(unsigned*)list->value);
         pos++;
         list = list->next;
     }
@@ -125,15 +125,15 @@ unsigned DemoSave(demo* ptr, const char* path) {
     list = ptr->instrsFirst;
     while(list != NULL) {
         demo_instruction* c = (demo_instruction*)list->value;
-        *pos     = c->time;
-        *(pos+1) = c->instruction;
+        *pos     = EncodeBigendian(c->time);
+        *(pos+1) = EncodeBigendian(c->instruction);
         pos += 2;
         list = list->next;
     }
 
     //  Crc32
     unsigned crc32 = CalcCRC32((char*)buf, bufLen-4);
-    *pos = crc32;
+    *pos = EncodeBigendian(crc32);
 
     //  Write buffer into a file
     FILE* fp = fopen(path, "w");
@@ -164,21 +164,22 @@ demo* DemoRead(const char* path) {
     fread(buffer, sizeof(char), len, fp);
     fclose(fp);
 
-    unsigned* pos = buffer;
-    // Check signature and version
-    if(*pos != DEMO_SIG || *(pos+1) != DEMO_VER) {
-       free(buffer);
-       return NULL;
-    }
     //  Check CRC32 checksum
-    unsigned crc32 = *(unsigned*)((char*)pos+len-4);
+    unsigned crc32 = DecodeBigendian(*(unsigned*)((char*)buffer+len-4));
     if (crc32 != CalcCRC32((char*)buffer, len-4)) {
         free(buffer);
         return NULL;
     }
 
-    unsigned pieces = *(pos+2);
-    unsigned instrs = *(pos+3);
+    unsigned* pos = buffer;
+    // Check signature and version
+    if(DecodeBigendian(*pos) != DEMO_SIG || DecodeBigendian(*(pos+1)) != DEMO_VER) {
+       free(buffer);
+       return NULL;
+    }
+
+    unsigned pieces = DecodeBigendian(*(pos+2));
+    unsigned instrs = DecodeBigendian(*(pos+3));
     pos += 4;
 
     //  Create demo instance
@@ -186,13 +187,13 @@ demo* DemoRead(const char* path) {
     if (ret) {
         //  Extract all pieces
         for (unsigned* end=pos+pieces; pos != end; pos++) {
-            DemoAddPiece(ret, *pos);
+            DemoAddPiece(ret, DecodeBigendian(*pos));
         }
 
         //  Extract all instructions
         for (unsigned* end=pos+instrs*2; pos != end; pos+=2) {
-            unsigned time = *pos;
-            unsigned instruction = *(pos+1);
+            unsigned time = DecodeBigendian(*pos);
+            unsigned instruction = DecodeBigendian(*(pos+1));
             DemoAddInstruction(ret, time, instruction);
         }
     }
