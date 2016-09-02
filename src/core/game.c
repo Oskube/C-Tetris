@@ -209,7 +209,6 @@ void FreeGame(game* ptr) {
     free(ptr->map.blockMask);
 
     //  Free recorded demo
-    DemoSave(ptr->demorecord, "demo.dm");
     DemoFree(ptr->demorecord);
     ptr->demorecord = NULL;
 

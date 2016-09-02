@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h> /* tolower() */
+#include <time.h> /* strftime(), localtime(), time()*/
+#include <string.h> /* strcpy() */
 
 #include "states.h"
 #include "game_functions.h"
@@ -10,20 +12,22 @@
 //  Static fsm functions
 static int StateInit(WINDOW* win, void** data);
 static void StateCleanUp();
+static char* GenerateDemoName();
 
 //  Static vars used by this state
 static bool is_running = false;
 static ncurse_game_windows windows = {.map = NULL, .info = NULL};
 static game* gme = NULL;
+static bool alreadySaved = false;
 
 //  State code
 void* StateGame(WINDOW* win, void** data) {
-
     //  State init
     if (!is_running) {
         if (StateInit(win, data) != 0) return NULL;
         is_running = true;
     }
+
     //  State code
     //  Read and process user input
     int input = getch();
@@ -34,6 +38,15 @@ void* StateGame(WINDOW* win, void** data) {
         case 'd': ProcessInput(gme, INPUT_RIGHT); break;
         case ' ': ProcessInput(gme, INPUT_SET); break;
         case 'q': is_running = false; break;
+        case 'p': if (gme->info.ended && !alreadySaved) {
+            alreadySaved = true;
+
+            char* name = GenerateDemoName();
+            if (!name) break;
+            mvprintw(0,0, "Demo saved: %s", name);
+            DemoSave(gme->demorecord, name);
+            free(name);
+        } break;
         default: break;
     }
 
@@ -71,6 +84,7 @@ int StateInit(WINDOW* win, void** data) {
         GameWindowsFree(&windows);
         return -3;
     }
+    alreadySaved = false;
     return 0;
 }
 
@@ -83,4 +97,26 @@ void StateCleanUp() {
 
     //  Free sub windows
     GameWindowsFree(&windows);
+}
+
+char* GenerateDemoName() {
+    static const unsigned strLen = 64;
+    char* ret = (char*)calloc(strLen, sizeof(char));
+    if (ret) {
+        int len = GetExecutablePath(ret, strLen);
+        if (len < 0) {
+            free(ret);
+            return NULL;
+        } else if(strLen-len < 30) {
+            // not enough space for filename -> allocated new and copy contents
+            char* newret = (char*)calloc(len+sizeof(char)*30, sizeof(char));
+            strcpy(newret, ret);
+            free(ret);
+            ret = newret;
+        }
+        time_t t = time(NULL);
+        struct tm* tmp = localtime(&t);
+        strftime(ret+len, strLen+30, "%Y%m%d-%H%M%S.demo", tmp);
+    }
+    return ret;
 }
