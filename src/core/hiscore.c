@@ -53,7 +53,7 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
     unsigned* p = buffer;
     unsigned* end = buffer+fLen-4; // data end, 1st byte of crc32
     if (DecodeBigendian(*p) != HEADER_SIG ||
-        DecodeBigendian(*(p+4)) != HEADER_VER
+        DecodeBigendian(*(p+1)) != HEADER_VER
     ) {
         free(buffer);
         return -3;
