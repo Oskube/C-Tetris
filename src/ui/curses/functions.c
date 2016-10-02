@@ -1,9 +1,8 @@
 #include <stdlib.h> /*malloc*/
 #include <time.h> /*used in DrawHiscores()*/
 #include <curses.h>
-#warning TODO: Move usleep to os_dependent
-#include <unistd.h> /* usleep() */
 
+#include "../os/os.h"
 #include "functions.h"
 
 /**
@@ -178,7 +177,7 @@ void LoopEnd(UI_Functions* data) {
 
     touchwin(win); /* Throw away all optimization info */
     wrefresh(win); /* Update terminal */
-    usleep(1000);
+    SleepMs(2);
 }
 /**
     Static functions

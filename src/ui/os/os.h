@@ -14,3 +14,9 @@ extern int GetExecutablePath(char* buf, unsigned len);
     \return Current time in milliseconds
 */
 extern unsigned GetTime();
+
+/**
+    \brief Sleeps for given time
+    \param ms Time in milliseconds
+*/
+extern void SleepMs(unsigned ms);
