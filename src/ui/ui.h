@@ -8,6 +8,8 @@
 #include "../core/game.h"
 #include "../core/hiscore.h"
 
+extern int MainProgram(int argc, char** argv);
+
 /**
     \brief Struct containing pointers to functions used by UI
 */

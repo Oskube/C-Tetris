@@ -12,14 +12,16 @@ CORE = game_randomisers.o \
 	   demo.o
 CORE := $(addprefix $(ODIR)/core/, $(CORE))
 
-CURSES = state_hiscores.o \
-		 state_playdemo.o \
-		 curses_core.o \
-		 curses_functions.o \
-		 state_game.o \
-		 curses_main.o \
-		 os_linux.o
-CURSES := $(addprefix $(ODIR)/ui_curses/, $(CURSES))
+UICOMMON =  states/hiscores.o \
+			states/playdemo.o \
+			states/game.o \
+			ui.o \
+			os/linux_funs.o
+UICOMMON := $(addprefix $(ODIR)/ui/, $(UICOMMON))
+
+CURSES = init.o \
+		 functions.o
+CURSES := $(addprefix $(ODIR)/ui/curses/, $(CURSES))
 
 
 BUILD = build
@@ -31,9 +33,9 @@ dir:
 	-mkdir -p build
 	-mkdir -p $(ODIR)
 	-mkdir -p $(ODIR)/core
-	-mkdir -p $(ODIR)/ui_curses
+	-mkdir -p $(ODIR)/ui/curses $(ODIR)/ui/os $(ODIR)/ui/states
 
-$(OUT): $(SRC)/main.c $(CORE) $(CURSES)
+$(OUT): $(SRC)/main.c $(CORE) $(UICOMMON) $(CURSES)
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 $(ODIR)/%.o: $(SRC)/%.c

@@ -1,4 +1,4 @@
-#include "ui.h"
+#include "../ui.h"
 
 //  How many records are kept in the hiscore table
 #define HISCORE_LENGTH 10

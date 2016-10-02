@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "curses_main.h"
-#include "curses_core.h"
-#include "states.h"
+#include "ui.h"
+#include "curses/init.h"
+#include "states/states.h"
 
-int MainCurses(int argc, char** argv) {
+int MainProgram(int argc, char** argv) {
     void* (*CurrentState)(UI_Functions*, void**);
     void** data = (void**)malloc(sizeof(void*));
     *data = NULL;

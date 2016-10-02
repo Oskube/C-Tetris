@@ -1,4 +1,4 @@
-#include "ui.h"
+#include "../ui.h"
 
 /**
     \brief Initializes ncurses

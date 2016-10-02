@@ -4,7 +4,7 @@
 #warning TODO: Move usleep to os_dependent
 #include <unistd.h> /* usleep() */
 
-#include "curses_functions.h"
+#include "functions.h"
 
 /**
     \brief Struct for windows used by game functions

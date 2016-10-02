@@ -2,7 +2,7 @@
     Header file for functions which are used to render and create ncurse ui for the game
 */
 
-#include "ui.h"
+#include "../ui.h"
 
 typedef struct {
     WINDOW* win;

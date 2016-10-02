@@ -1,7 +1,7 @@
 #include <unistd.h> /* readlink() */
 #include <sys/time.h> /* gettimeofday() */
 
-#include "os_dependent.h"
+#include "os.h"
 
 int GetExecutablePath(char* buf, unsigned len) {
     int ret = (int)readlink("/proc/self/exe", buf, len);

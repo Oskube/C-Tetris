@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <curses.h>
 
-#include "curses_core.h"
-#include "curses_functions.h"
-#include "os_dependent.h"
+#include "init.h"
+#include "functions.h"
+#include "../os/os.h"
 
 int CursesInit(UI_Functions* ret) {
     //  Assign all function pointers
