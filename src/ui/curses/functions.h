@@ -59,9 +59,19 @@ extern void DrawText(UI_Functions* data, unsigned x, unsigned y, char* text);
     \brief Read keyboard
     \return Pressed key
 */
-extern int ReadKey();
+extern int ReadKey(UI_Functions* funs);
 
 /**
     \brief Sleeps for a while
+    \param data Pointer to data used
 */
 extern void LoopEnd(UI_Functions* data);
+
+/**
+    \brief Get executable path
+    \param data Not used
+    \param buf Buffer where path is copied
+    \param len Maximum bytes copied
+    \return Ammount of bytes copied
+*/
+extern int GetExePath(UI_Functions* data, char* buf, unsigned len);

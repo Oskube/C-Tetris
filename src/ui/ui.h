@@ -25,10 +25,10 @@ typedef struct _uifun {
 
     //  Common
     void (*UITextRender)(struct _uifun*, unsigned x, unsigned y, char* text); /**< Renders text to UI */
-    int  (*UIGetInput)();       /**< Read user input */
-    unsigned (*UIGetMillis)();  /**< Return milliseconds since start up */
-    int (*UIGetExePath)(char* buf, unsigned len); /**< Return path to executable */
-    void (*UIMainLoopEnd)(struct _uifun*); /**< Function called at the end of the main loop */
+    int  (*UIGetInput)(struct _uifun*);         /**< Read user input */
+    unsigned (*UIGetMillis)();                      /**< Return milliseconds since start up */
+    int (*UIGetExePath)(struct _uifun*, char* buf, unsigned len);   /**< Return path to executable */
+    void (*UIMainLoopEnd)(struct _uifun*);          /**< Function called at the end of the main loop */
 
     //  Internal
     void (*UICleanup)(struct _uifun*); /**< Frees memory and closes ui */

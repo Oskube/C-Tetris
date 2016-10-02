@@ -3,6 +3,7 @@
 /**
     \brief Initializes ncurses
     \param ret Pointer to struct used in returning function pointers
+    \return 0 on success
 */
 extern int CursesInit(UI_Functions* ret);
 

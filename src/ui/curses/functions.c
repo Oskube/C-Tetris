@@ -166,7 +166,7 @@ void DrawText(UI_Functions* data, unsigned x, unsigned y, char* text) {
     mvwprintw(dst, x, y, "%s", text);
 }
 
-int ReadKey() {
+int ReadKey(UI_Functions* funs) {
     return getch();
 };
 
@@ -179,6 +179,11 @@ void LoopEnd(UI_Functions* data) {
     wrefresh(win); /* Update terminal */
     SleepMs(2);
 }
+
+int GetExePath(UI_Functions* data, char* buf, unsigned len) {
+    return GetExecutablePath(buf, len);
+}
+
 /**
     Static functions
 **/

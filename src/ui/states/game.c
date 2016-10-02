@@ -28,7 +28,7 @@ void* StateGame(UI_Functions* funs, void** data) {
 
     //  State code
     //  Read and process user input
-    int input = funs->UIGetInput();
+    int input = funs->UIGetInput(funs);
     switch (tolower(input)) {
         case 'w': ProcessInput(gme, INPUT_ROTATE); break;
         case 'a': ProcessInput(gme, INPUT_LEFT); break;
@@ -113,7 +113,7 @@ char* GenerateDemoName(UI_Functions* funs) {
     static const unsigned strLen = 64;
     char* ret = (char*)calloc(strLen, sizeof(char));
     if (ret) {
-        int len = funs->UIGetExePath(ret, strLen);
+        int len = funs->UIGetExePath(funs, ret, strLen);
         if (len < 0) {
             free(ret);
             return NULL;

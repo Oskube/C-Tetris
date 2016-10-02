@@ -34,7 +34,7 @@ void* StateHiscores(UI_Functions* funs, void** data) {
         funs->UIHiscoreRender(funs, scoreTable, HISCORE_LENGTH);
     }
 
-    int input = funs->UIGetInput();
+    int input = funs->UIGetInput(funs);
     switch (tolower(input)) {
         case 'q': {
             is_running = false;
@@ -55,7 +55,7 @@ int StateInit(UI_Functions* funs, void** data) {
     if (!data || !funs) return -1;
 
     //  Read high scores
-    int len = funs->UIGetExePath(path_hiscore, 256);
+    int len = funs->UIGetExePath(funs, path_hiscore, 256);
     if (len < 0) return -2;
     strncpy(path_hiscore+len, HISCORE_FILE, 256-len);
     ReadHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);

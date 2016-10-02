@@ -17,7 +17,7 @@ int CursesInit(UI_Functions* ret) {
     ret->UITextRender = DrawText;
     ret->UIGetInput = ReadKey;
     ret->UIGetMillis = GetTime;
-    ret->UIGetExePath = GetExecutablePath;
+    ret->UIGetExePath = GetExePath;
     ret->UIMainLoopEnd = LoopEnd;
 
     ret->UICleanup = CursesCleanup;
