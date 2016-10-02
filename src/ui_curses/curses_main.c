@@ -1,24 +1,22 @@
-#include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> /* usleep() */
 
 #include "curses_main.h"
+#include "curses_core.h"
 #include "states.h"
-#include "../core/game_randomisers.h"
 
 int MainCurses(int argc, char** argv) {
-    WINDOW* win = initscr();
-
-    if (!win) {
-        fprintf(stderr, "CURSES: Can't initialize screen. Returning\n");
-        return -1;
-    }
-
-    void* (*CurrentState)(WINDOW*, void**);
+    void* (*CurrentState)(UI_Functions*, void**);
     void** data = (void**)malloc(sizeof(void*));
     *data = NULL;
+
+    // Use Curses as UI
+    UI_Functions ui;
+    if (CursesInit(&ui) != 0) {
+        fprintf(stderr, "Curses Initialization failed");
+        return -1;
+    }
 
     CurrentState = NULL;
     state_game_data gameSettings = {.randomiser = RANDOMISER_TGM};
@@ -63,15 +61,14 @@ int MainCurses(int argc, char** argv) {
     }
 
     while (CurrentState != NULL) {
-        CurrentState = CurrentState(win, data);
+        CurrentState = CurrentState(&ui, data);
 
-        touchwin(win); /* Throw away all optimization info */
-        wrefresh(win); /* Update terminal */
-        usleep(1000);
+        ui.UIMainLoopEnd(&ui);
     }
 
     if (*data != NULL) free(*data);
     free(data);
-    endwin();
+    ui.UICleanup(&ui);
+
     return 0;
 }

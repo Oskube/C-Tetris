@@ -3,35 +3,32 @@
 #include <ctype.h> /* tolower() */
 #include <time.h> /* strftime(), localtime(), time()*/
 #include <string.h> /* strcpy() */
+#include <stdbool.h>
 
 #include "states.h"
-#include "game_functions.h"
-#include "os_dependent.h"
-#include "../core/hiscore.h"
 
 //  Static fsm functions
-static int StateInit(WINDOW* win, void** data);
-static void StateCleanUp();
-static char* GenerateDemoName();
+static int StateInit(UI_Functions* funs, void** data);
+static void StateCleanUp(UI_Functions* funs);
+static char* GenerateDemoName(UI_Functions* funs);
 
 //  Static vars used by this state
 static bool is_running = false;
-static ncurse_game_windows windows = {.map = NULL, .info = NULL};
 static game* gme = NULL;
 static bool alreadySaved = false;
 static state_game_data settings = {0}; /* Game settings, stays same until changed */
 
 //  State code
-void* StateGame(WINDOW* win, void** data) {
+void* StateGame(UI_Functions* funs, void** data) {
     //  State init
     if (!is_running) {
-        if (StateInit(win, data) != 0) return NULL;
+        if (StateInit(funs, data) != 0) return NULL;
         is_running = true;
     }
 
     //  State code
     //  Read and process user input
-    int input = getch();
+    int input = funs->UIGetInput();
     switch (tolower(input)) {
         case 'w': ProcessInput(gme, INPUT_ROTATE); break;
         case 'a': ProcessInput(gme, INPUT_LEFT); break;
@@ -42,16 +39,20 @@ void* StateGame(WINDOW* win, void** data) {
         case 'p': if (gme->info.ended && !alreadySaved) {
             alreadySaved = true;
 
-            char* name = GenerateDemoName();
+            char* name = GenerateDemoName(funs);
             if (!name) break;
-            mvprintw(0,0, "Demo saved: %s", name);
+
+            char text[128];
+            snprintf(text, 128, "Demo saved: %s", name);
+            funs->UITextRender(funs, 0, 0, text);
             DemoSave(gme->demorecord, name);
             free(name);
         } break;
         default: break;
     }
 
-    UpdateAndRender(gme, &windows);
+    Update(gme);
+    funs->UIGameRender(funs, gme);
 
     //  If quit requested
     if (!is_running) {
@@ -65,17 +66,17 @@ void* StateGame(WINDOW* win, void** data) {
         e->lvl = gme->info.level;
         e->time = GetGameTime(gme);
 
-        StateCleanUp();
+        StateCleanUp(funs);
         return StateHiscores;
     }
 
     return StateGame;   //  Continue with current state
 }
 
-int StateInit(WINDOW* win, void** data) {
+int StateInit(UI_Functions* funs, void** data) {
     if (!data) return -1;
 
-    if (GameWindowsInit(win, &windows)) {
+    if (funs->UIGameInit(funs)) {
         return -2;
     }
 
@@ -86,10 +87,10 @@ int StateInit(WINDOW* win, void** data) {
         *data = NULL;
     }
 
-    gme = Initialize(MAP_WIDTH, MAP_HEIGHT+2, settings.randomiser, GetTime);
+    gme = Initialize(MAP_WIDTH, MAP_HEIGHT+2, settings.randomiser, funs->UIGetMillis);
     if (!gme) {
         fprintf(stderr, "CORE: Couldn't initialize game");
-        GameWindowsFree(&windows);
+        funs->UIGameCleanup(funs);
         return -3;
     }
 
@@ -100,19 +101,19 @@ int StateInit(WINDOW* win, void** data) {
 /**
     \brief State cleanup
 */
-void StateCleanUp() {
+void StateCleanUp(UI_Functions* funs) {
     FreeGame(gme);
     gme = NULL;
 
     //  Free sub windows
-    GameWindowsFree(&windows);
+    funs->UIGameCleanup(funs);
 }
 
-char* GenerateDemoName() {
+char* GenerateDemoName(UI_Functions* funs) {
     static const unsigned strLen = 64;
     char* ret = (char*)calloc(strLen, sizeof(char));
     if (ret) {
-        int len = GetExecutablePath(ret, strLen);
+        int len = funs->UIGetExePath(ret, strLen);
         if (len < 0) {
             free(ret);
             return NULL;

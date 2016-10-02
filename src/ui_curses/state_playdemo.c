@@ -1,20 +1,16 @@
 #include <ctype.h> /* tolower() */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "states.h"
-#include "game_functions.h"
-#include "os_dependent.h"
 
 //  Static fsm functions
-static int StateInit(WINDOW* win, void** data);
-static void StateCleanUp();
-
-static void PrintDemoInfo(); // Prints demo path and instruction count
+static int StateInit(UI_Functions* funs, void** data);
+static void StateCleanUp(UI_Functions* funs);
 
 //  Static vars used by this state
 static bool is_running = false;
-static ncurse_game_windows windows = {.map = NULL, .info = NULL};
 static game* gme = NULL;
 static demo* record = NULL;
 static unsigned start = 0; /* Time of the demo playback start, in ms */
@@ -22,10 +18,10 @@ static char* demoPath = NULL; /* Path of the demo */
 static unsigned countInstruction = 0; /* Instruction count shown */
 static demo_list* demoPosition = NULL; /* Pointer to the current demo instruction */
 
-void* StatePlayDemo(WINDOW* win, void** data) {
+void* StatePlayDemo(UI_Functions* funs, void** data) {
     //  State init
     if (!is_running) {
-        if (StateInit(win, data) != 0) {
+        if (StateInit(funs, data) != 0) {
             if (demoPath) free(demoPath);
             return NULL;
         }
@@ -33,7 +29,7 @@ void* StatePlayDemo(WINDOW* win, void** data) {
     }
 
     //  Process input
-    int input = getch();
+    int input = funs->UIGetInput();
     switch (tolower(input)) {
         case 'q': is_running = false; break;
         default: break;
@@ -41,7 +37,7 @@ void* StatePlayDemo(WINDOW* win, void** data) {
 
     //  If demo hasn't ended
     if (demoPosition) {
-        unsigned demoTime = GetTime() - start;  //  Calculate playback time
+        unsigned demoTime = funs->UIGetMillis() - start;  //  Calculate playback time
         demo_instruction* inst = (demo_instruction*)demoPosition->value; // Get current instruction
 
         //  Process instructions until we have to wait for the next one
@@ -55,25 +51,31 @@ void* StatePlayDemo(WINDOW* win, void** data) {
 
             inst = (demo_instruction*)demoPosition->value;
         }
-        PrintDemoInfo();
+        char text[128];
+        int len = snprintf(text, 128, "DEMO: %s\tInstruction: %u of %u", demoPath, countInstruction, record->instrsCount);
+        if (countInstruction >= record->instrsCount && len < 128) {
+            snprintf(text+len, 128-len, " - DEMO ENDED");
+        }
+        funs->UITextRender(funs, 0, 0, text);
     }
-    UpdateAndRender(gme, &windows);
+    Update(gme);
+    funs->UIGameRender(funs, gme);
 
     //  If quit requested
     if (!is_running) {
-        StateCleanUp();
+        StateCleanUp(funs);
         return NULL;
     }
     return StatePlayDemo;
 }
 
-int StateInit(WINDOW* win, void** data) {
+int StateInit(UI_Functions* funs, void** data) {
     if (!data) return -1;
     demoPath = *data;
     *data = NULL;
     if (!demoPath) return -2;
 
-    if (GameWindowsInit(win, &windows)) {
+    if (funs->UIGameInit(funs)) {
         return -2;
     }
 
@@ -85,26 +87,21 @@ int StateInit(WINDOW* win, void** data) {
     }
 
     //  Init demo game
-    gme = InitDemoGame(MAP_WIDTH, MAP_HEIGHT+2, GetTime, record);
+    gme = InitDemoGame(MAP_WIDTH, MAP_HEIGHT+2, funs->UIGetMillis, record);
 
     demoPosition = record->instrsFirst; //  Set demo position to begining
-    start = GetTime(); //  Set starting time of playback
+    start = funs->UIGetMillis(); //  Set starting time of playback
     countInstruction = 0;
 
     return 0;
 }
 
-void StateCleanUp() {
+void StateCleanUp(UI_Functions* funs) {
     FreeGame(gme);
     gme = NULL;
     free(demoPath);
     demoPath = NULL;
 
     //  Free sub windows
-    GameWindowsFree(&windows);
-}
-
-void PrintDemoInfo() {
-    mvprintw(0, 0, "DEMO: %s\tInstruction: %u of %u", demoPath, countInstruction, record->instrsCount);
-    if(!demoPosition) printw(" - DEMO ENDED");
+    funs->UIGameCleanup(funs);
 }
