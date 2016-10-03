@@ -4,6 +4,7 @@
 
 #include "ui.h"
 #include "curses/init.h"
+#include "sdl/init.h"
 #include "states/states.h"
 
 int MainProgram(int argc, char** argv) {
@@ -11,15 +12,17 @@ int MainProgram(int argc, char** argv) {
     void** data = (void**)malloc(sizeof(void*));
     *data = NULL;
 
-    // Use Curses as UI
+    //  Defines what UI is used
     UI_Functions ui;
-    if (CursesInit(&ui) != 0) {
-        fprintf(stderr, "Curses Initialization failed");
-        return -1;
-    }
 
     CurrentState = NULL;
     state_game_data gameSettings = {.randomiser = RANDOMISER_TGM};
+
+    //  Game state is default
+    if (!CurrentState) {
+        CurrentState = StateGame;
+    }
+
     //  Process arguments
     for (int i=1; i<argc; i++) {
         if (!strcmp(argv[i], "--demo")) {
@@ -48,16 +51,29 @@ int MainProgram(int argc, char** argv) {
                 gameSettings.randomiser = RANDOMISER_RANDOM;
             }
         }
+        //  Select SDL UI
+        else if (!strcmp(argv[i], "-SDL") && !ui.UIGameInit) {
+            if (UI_SDLInit(&ui) != 0) {
+                fprintf(stderr, "SDL Initialization failed");
+                CurrentState = NULL;
+            }
+        }
     }
 
-    //  Game state is default
-    if (!CurrentState) {
-        CurrentState = StateGame;
+    if (CurrentState == StateGame) {
         //  Copy game settings
         if (*data != NULL) free(*data);
         state_game_data* set = (state_game_data*)malloc(sizeof(state_game_data));
         *set = gameSettings;
         *data = (void*)set;
+    }
+
+    //  Default UI is curses
+    if (!ui.UIGameInit) {
+        if (CursesInit(&ui) != 0) {
+            fprintf(stderr, "Curses Initialization failed");
+            CurrentState = NULL;
+        }
     }
 
     while (CurrentState != NULL) {
