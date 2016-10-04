@@ -49,12 +49,30 @@ void UI_SDLHiscoreRender(UI_Functions* funs, hiscore_list_entry* list, unsigned 
 
 }
 
-void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry entry, unsigned maxlen, unsigned rank) {
+void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
 
 }
 
 void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, char* text) {
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
+    int winW, winH;
+    SDL_GetWindowSize(data->window, &winW, &winH);
+    int rowSz = winW/24;
+    int colSz = winW/80;
+
+    unsigned len = strlen(text);
+    SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = rowSz};
+    for (unsigned i = 0; i < len; i++, target.x += colSz) {
+        int ch = toupper(text[i]);
+
+        if (ch <= data->fontlast) {
+            int pos = ch - data->font1st;
+            if (pos >= 0) {
+                SDL_RenderCopy(data->renderer, data->font, &data->fontClips[pos], &target);
+            }
+        }
+    }
 }
 
 int UI_SDLGetInput(UI_Functions* funs) {

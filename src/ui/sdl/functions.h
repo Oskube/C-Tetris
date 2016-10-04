@@ -8,6 +8,12 @@ typedef struct {
     SDL_Window* window;
     SDL_Renderer* renderer;
     char* basePath;
+    //  Font
+    SDL_Texture* font;
+    SDL_Rect*    fontClips;
+    char         font1st;
+    char         fontlast;
+
     void* additional;
 } ui_sdl_data;
 
@@ -16,7 +22,7 @@ extern void UI_SDLGameCleanUp(UI_Functions* funs);
 extern int  UI_SDLGameRender(UI_Functions* funs, game* gme);
 
 extern void UI_SDLHiscoreRender(UI_Functions* funs, hiscore_list_entry* list, unsigned len);
-extern void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry entry, unsigned maxlen, unsigned rank);
+extern void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
 
 extern void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, char* text);
 extern int  UI_SDLGetInput(UI_Functions* funs);

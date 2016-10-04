@@ -40,6 +40,7 @@ dir:
 	-mkdir -p $(ODIR)
 	-mkdir -p $(ODIR)/core
 	-mkdir -p $(ODIR)/ui/curses $(ODIR)/ui/os $(ODIR)/ui/states $(ODIR)/ui/sdl
+	cp ./res/* ./build/
 
 $(OUT): $(SRC)/main.c $(CORE) $(UICOMMON) $(CURSES) $(UISDL)
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)

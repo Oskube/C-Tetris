@@ -14,7 +14,8 @@ int MainProgram(int argc, char** argv) {
 
     //  Defines what UI is used
     UI_Functions ui;
-
+    ui.UIGameInit = NULL; // Make sure this is NULL, because it's used to determine if struct is initialized
+    
     CurrentState = NULL;
     state_game_data gameSettings = {.randomiser = RANDOMISER_TGM};
 
