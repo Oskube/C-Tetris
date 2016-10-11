@@ -53,7 +53,7 @@ void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigne
 
 }
 
-void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, char* text) {
+void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, unsigned color, char* text) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     int winW, winH;
@@ -62,7 +62,20 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, char* text) {
     int colSz = winW/80;
 
     unsigned len = strlen(text);
-    SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = rowSz};
+
+    //  Endianness check
+    unsigned test = 1;
+    if (*((unsigned char*)&test)) {
+        unsigned char* c = (unsigned char*)&color;
+        SDL_SetTextureAlphaMod(data->font, c[3]);
+        SDL_SetTextureColorMod(data->font, c[2], c[1], c[0]);
+    } else {
+        unsigned char* c = (unsigned char*)&color;
+        SDL_SetTextureAlphaMod(data->font, c[0]);
+        SDL_SetTextureColorMod(data->font, c[1], c[2], c[3]);
+    }
+
+    SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = colSz};
     for (unsigned i = 0; i < len; i++, target.x += colSz) {
         int ch = toupper(text[i]);
 

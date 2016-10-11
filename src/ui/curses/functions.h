@@ -53,7 +53,7 @@ extern void GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, uns
     \param y row
     \param text Pointer to the text string
 */
-extern void DrawText(UI_Functions* data, unsigned x, unsigned y, char* text);
+extern void DrawText(UI_Functions* data, unsigned x, unsigned y, unsigned color, char* text);
 
 /**
     \brief Read keyboard

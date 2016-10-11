@@ -56,7 +56,7 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
         if (countInstruction >= record->instrsCount && len < 128) {
             snprintf(text+len, 128-len, " - DEMO ENDED");
         }
-        funs->UITextRender(funs, 0, 0, text);
+        funs->UITextRender(funs, 0, 0, 0xffff0000, text);
     }
     Update(gme);
     funs->UIGameRender(funs, gme);

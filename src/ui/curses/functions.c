@@ -158,7 +158,7 @@ void GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned m
     curs_set(0);
     clear();
 }
-void DrawText(UI_Functions* data, unsigned x, unsigned y, char* text) {
+void DrawText(UI_Functions* data, unsigned x, unsigned y, unsigned color, char* text) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;

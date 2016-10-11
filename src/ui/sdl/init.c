@@ -69,7 +69,7 @@ int UI_SDLInit(UI_Functions* ret) {
     //  Set data pointer
     ui_sdl_data* sdldata = (ui_sdl_data*)malloc(sizeof(ui_sdl_data));
     if (!sdldata) {
-        fprintf(stderr, "\nCould not create renderer: %s\n", SDL_GetError());
+        fprintf(stderr, "\nCould not create data container.\n");
         SDL_DestroyRenderer(ren);
         SDL_DestroyWindow(win);
         SDL_Quit();
@@ -93,7 +93,7 @@ int UI_SDLInit(UI_Functions* ret) {
     SDL_Rect clip = {.w = 16, .h = 16 };
     SDL_Rect* fclips = ClipRect(&canvas, &clip, &clipLen);
     if (!fclips || !font) {
-        fprintf(stderr, "\nCould not load font.bmp: %s\n", SDL_GetError());
+        fprintf(stderr, "\nCould'nt initialize font: %s\n", SDL_GetError());
         return -3;
     }
 
@@ -153,11 +153,14 @@ void UI_SDLCleanUp(UI_Functions* ptr) {
 SDL_Texture* LoadImage(SDL_Renderer* ren, const char* path, int* outw, int* outh) {
     SDL_Texture* ret = NULL;
     SDL_Surface* surf = SDL_LoadBMP(path);
-    SDL_SetColorKey(surf, SDL_TRUE, 0xff000000);
     if (surf) {
+        SDL_SetColorKey(surf, SDL_TRUE, 0x00ff00ff); // set magenta transparent
         ret = SDL_CreateTextureFromSurface(ren, surf);
+        if(ret) SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
+
         if (outw) *outw = surf->w;
         if (outh) *outh = surf->h;
+        SDL_FreeSurface(surf);
     }
 
     return ret;

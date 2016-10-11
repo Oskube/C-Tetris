@@ -24,7 +24,7 @@ typedef struct _uifun {
     void (*UIHiscoreGetName)(struct _uifun*, hiscore_list_entry* entry, unsigned maxlen, unsigned rank); /**< Asks user name */
 
     //  Common
-    void (*UITextRender)(struct _uifun*, unsigned x, unsigned y, char* text); /**< Renders text to UI */
+    void (*UITextRender)(struct _uifun*, unsigned x, unsigned y, unsigned color, char* text); /**< Renders text to UI */
     int  (*UIGetInput)(struct _uifun*);         /**< Read user input */
     unsigned (*UIGetMillis)();                      /**< Return milliseconds since start up */
     int (*UIGetExePath)(struct _uifun*, char* buf, unsigned len);   /**< Return path to executable */
