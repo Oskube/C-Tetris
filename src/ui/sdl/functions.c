@@ -6,17 +6,28 @@
 
 typedef struct {
     unsigned char r, g, b;
-} SymbolColor;
+} Color;
 
-static SymbolColor sym_color[] = {
-    {.r = 255, .g = 255, .b = 0 },  // SHAPE_O = yellow
-    {.r = 0, .g = 255, .b = 255 },  // SHAPE_I = cyan
-    {.r = 255, .g = 0, .b = 255 },  // SHAPE_T = purple
-    {.r = 255, .g = 96, .b = 0 },   // SHAPE_L = orange
-    {.r = 0, .g = 0, .b = 255 },    // SHAPE_J = blue
-    {.r = 0, .g = 255, .b = 0 },    // SHAPE_S = green
-    {.r = 255, .g = 0, .b = 0 },    // SHAPE_Z = red
-    {.r = 0, .g = 0, .b = 0 },      // SHAPE_MAX
+static Color sdl_colors[] = {
+    {.r = 0, .g = 0, .b = 0 },      // 0, black
+    {.r = 200, .g = 0, .b = 0 },    // 1, red
+    {.r = 0, .g = 200, .b = 0 },    // 2, green
+    {.r = 200, .g = 200, .b = 0 },  // 3, yellow
+    {.r = 0, .g = 0, .b = 255 },    // 4, blue
+    {.r = 255, .g = 0, .b = 255 },  // 5, magenta
+    {.r = 0, .g = 255, .b = 255 },  // 6, cyan
+    {.r = 255, .g = 255, .b = 255 },// 7, white
+    {.r = 0, .g = 0, .b = 0},       // 8, default, should be something different than background
+    //  Keep first 9 in this order, used in text rendering, same for all UIs
+
+    {.r = 255, .g = 96, .b = 0 },   // 9, orange
+};
+
+//  Tetromino colors used with sdl_colors array
+static int sym_colors[] = {
+    // tetromino(color)
+    // O(yellow), I(cyan), T(purple), L(orange), J(blue), S(green), Z(red)
+    3, 6, 5, 9, 4, 2, 1
 };
 
 static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, tetromino* tetr, int offset_x, int offset_y);
@@ -53,7 +64,7 @@ void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigne
 
 }
 
-void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, unsigned color, char* text) {
+void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color color, char* text) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     int winW, winH;
@@ -64,6 +75,7 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, unsigned color
     unsigned len = strlen(text);
 
     //  Endianness check
+    /*
     unsigned test = 1;
     if (*((unsigned char*)&test)) {
         unsigned char* c = (unsigned char*)&color;
@@ -74,6 +86,11 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, unsigned color
         SDL_SetTextureAlphaMod(data->font, c[0]);
         SDL_SetTextureColorMod(data->font, c[1], c[2], c[3]);
     }
+    */
+    SDL_SetTextureColorMod(data->font, sdl_colors[color].r, sdl_colors[color].g, sdl_colors[color].b);
+    SDL_SetTextureAlphaMod(data->font, 255);
+
+    // SDL_SetTextureColorMod(data->font, 255, 0, 0);
 
     SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = colSz};
     for (unsigned i = 0; i < len; i++, target.x += colSz) {
@@ -165,7 +182,8 @@ void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme) {
         if (mask[pos]) {
             //  Change color and render
             unsigned sym = mask[pos]->symbol;
-            SDL_SetRenderDrawColor(ren, sym_color[sym].r, sym_color[sym].g, sym_color[sym].b, 255);
+            sym = sym_colors[sym];
+            SDL_SetRenderDrawColor(ren, sdl_colors[sym].r, sdl_colors[sym].g, sdl_colors[sym].b, 255);
             SDL_RenderFillRect(ren, &cell);
         }
 
@@ -177,14 +195,15 @@ void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme) {
     }
 
 
-    unsigned sym = gme->active->blocks[0]->symbol;
-    SDL_SetRenderDrawColor(ren, sym_color[sym].r, sym_color[sym].g, sym_color[sym].b, 255);
+    unsigned c = gme->active->blocks[0]->symbol;
+    c = sym_colors[c];
+    SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
     DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y);
     unsigned tmp = gme->active->y;
 
     //  Ghost
     gme->active->y = gme->info.ghostY;
-    SDL_SetRenderDrawColor(ren, sym_color[sym].r, sym_color[sym].g, sym_color[sym].b, 64);
+    SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 64);
     DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y);
     gme->active->y = tmp;
 }

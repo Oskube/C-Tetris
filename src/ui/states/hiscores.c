@@ -6,8 +6,6 @@
 
 #include "states.h"
 
-#define COLOR_RED 0xffff0000
-
 static int StateInit(UI_Functions* funs, void** data);
 static void CleanUp();
 
@@ -96,14 +94,14 @@ void DrawHiscores(UI_Functions* funs, hiscore_list_entry* list, unsigned len) {
     unsigned topx = 3;
 
     snprintf(temp, 256, "TOP %d SCORES", len);
-    funs->UITextRender(funs, 34, topy++, COLOR_RED, temp);
-    funs->UITextRender(funs, topx,topy, COLOR_RED, "#");
-    funs->UITextRender(funs, topx+3,topy, COLOR_RED, "NAME");
-    funs->UITextRender(funs, topx+20,topy, COLOR_RED, "SCORE");
-    funs->UITextRender(funs, topx+30,topy, COLOR_RED, "LINES");
-    funs->UITextRender(funs, topx+37,topy, COLOR_RED, "LVL");
-    funs->UITextRender(funs, topx+41,topy, COLOR_RED, "TIME");
-    funs->UITextRender(funs, topx+50,topy++, COLOR_RED, "DATE");
+    funs->UITextRender(funs, 34, topy++, color_default, temp);
+    funs->UITextRender(funs, topx,topy, color_blue, "#");
+    funs->UITextRender(funs, topx+3,topy, color_blue, "NAME");
+    funs->UITextRender(funs, topx+20,topy, color_blue, "SCORE");
+    funs->UITextRender(funs, topx+30,topy, color_blue, "LINES");
+    funs->UITextRender(funs, topx+37,topy, color_blue, "LVL");
+    funs->UITextRender(funs, topx+41,topy, color_blue, "TIME");
+    funs->UITextRender(funs, topx+50,topy++, color_blue, "DATE");
 
     for (unsigned i=0; i<len; i++, topy++) {
         time_t date = (time_t)list[i].date;
@@ -113,17 +111,17 @@ void DrawHiscores(UI_Functions* funs, hiscore_list_entry* list, unsigned len) {
         sec %= 60;
 
         snprintf(temp, 256, "%d", i+1);
-        funs->UITextRender(funs, topx, topy, COLOR_RED, temp);
+        funs->UITextRender(funs, topx, topy, color_red, temp);
 
-        funs->UITextRender(funs, topx+3, topy, COLOR_RED, list[i].name);
+        funs->UITextRender(funs, topx+3, topy, color_green, list[i].name);
         snprintf(temp, 256, "%d", list[i].score);
-        funs->UITextRender(funs, topx+20, topy, COLOR_RED, temp);
+        funs->UITextRender(funs, topx+20, topy, color_default, temp);
         snprintf(temp, 256, "%d", list[i].rows);
-        funs->UITextRender(funs, topx+30, topy, COLOR_RED, temp);
+        funs->UITextRender(funs, topx+30, topy, color_magenta, temp);
         snprintf(temp, 256, "%d", list[i].lvl);
-        funs->UITextRender(funs, topx+37, topy, COLOR_RED, temp);
+        funs->UITextRender(funs, topx+37, topy, color_magenta, temp);
         snprintf(temp, 256, "%d:%02d.%d", min, sec, tenth);
-        funs->UITextRender(funs, topx+41, topy, COLOR_RED, temp);
-        funs->UITextRender(funs, topx+50, topy, COLOR_RED, ctime(&date));
+        funs->UITextRender(funs, topx+41, topy, color_magenta, temp);
+        funs->UITextRender(funs, topx+50, topy, color_yellow, ctime(&date));
     }
 }
