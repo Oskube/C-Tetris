@@ -44,7 +44,7 @@ void* StateGame(UI_Functions* funs, void** data) {
 
             char text[128];
             snprintf(text, 128, "Demo saved: %s", name);
-            funs->UITextRender(funs, 0, 0, 0xffff0000, text);
+            funs->UITextRender(funs, 0, 0, color_red, text);
             DemoSave(gme->demorecord, name);
             free(name);
         } break;

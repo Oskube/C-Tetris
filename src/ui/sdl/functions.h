@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #include "SDL.h"
 #include "../ui.h"
 
@@ -14,6 +16,7 @@ typedef struct {
     char         font1st;
     char         fontlast;
 
+    bool clearScreen;
     void* additional;
 } ui_sdl_data;
 

@@ -45,6 +45,7 @@ void UI_SDLGameCleanUp(UI_Functions* funs) {
 int UI_SDLGameRender(UI_Functions* funs, game* gme) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
+    data->clearScreen = true; // request clean screen after rendering
     int winW, winH;
     SDL_GetWindowSize(data->window, &winW, &winH);
     SDL_Rect gameArea = {
@@ -57,7 +58,8 @@ int UI_SDLGameRender(UI_Functions* funs, game* gme) {
 }
 
 void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
-
+    //  Make sure screen is clear
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
 }
 
 void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
@@ -74,24 +76,11 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
 
     unsigned len = strlen(text);
 
-    //  Endianness check
-    /*
-    unsigned test = 1;
-    if (*((unsigned char*)&test)) {
-        unsigned char* c = (unsigned char*)&color;
-        SDL_SetTextureAlphaMod(data->font, c[3]);
-        SDL_SetTextureColorMod(data->font, c[2], c[1], c[0]);
-    } else {
-        unsigned char* c = (unsigned char*)&color;
-        SDL_SetTextureAlphaMod(data->font, c[0]);
-        SDL_SetTextureColorMod(data->font, c[1], c[2], c[3]);
-    }
-    */
+    //  Set text color
     SDL_SetTextureColorMod(data->font, sdl_colors[color].r, sdl_colors[color].g, sdl_colors[color].b);
     SDL_SetTextureAlphaMod(data->font, 255);
 
-    // SDL_SetTextureColorMod(data->font, 255, 0, 0);
-
+    //  Text rendering
     SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = colSz};
     for (unsigned i = 0; i < len; i++, target.x += colSz) {
         int ch = toupper(text[i]);
@@ -151,7 +140,10 @@ void UI_SDLMainLoopEnd(UI_Functions* funs) {
 
     SDL_RenderPresent(data->renderer);
     SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, 255);
-    SDL_RenderClear(data->renderer);
+    if (data->clearScreen) {
+        SDL_RenderClear(data->renderer);
+        data->clearScreen = false;
+    }
 }
 
 /***********************

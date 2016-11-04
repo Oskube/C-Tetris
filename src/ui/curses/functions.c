@@ -138,8 +138,13 @@ void DrawText(UI_Functions* data, unsigned x, unsigned y, text_color color, char
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
-
-    mvwprintw(dst, y, x, "%s", text);
+    if (has_colors() && color < 8) {
+        attron(COLOR_PAIR(color));
+        mvwprintw(dst, y, x, "%s", text);
+        attroff(COLOR_PAIR(color));
+    } else {
+        mvwprintw(dst, y, x, "%s", text);
+    }
 }
 
 int ReadKey(UI_Functions* funs) {

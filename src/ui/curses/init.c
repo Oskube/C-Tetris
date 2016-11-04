@@ -29,6 +29,15 @@ int CursesInit(UI_Functions* ret) {
     if (!newdata->win) {
         return -2;
     }
+
+    //  Initialize color support if available
+    if (has_colors()) {
+        start_color();
+
+        for (short i = 1; i < 7; i++)
+            init_pair(i, i, 0);
+    }
+
     ret->data = newdata;
     return 0;
 }

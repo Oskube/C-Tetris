@@ -32,6 +32,7 @@ void* StateHiscores(UI_Functions* funs, void** data) {
         SaveHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
         free(entry);
         entry = NULL;
+        DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
     }
 
     int input = funs->UIGetInput(funs);
@@ -45,8 +46,6 @@ void* StateHiscores(UI_Functions* funs, void** data) {
             nextState = StateGame;
         }
     }
-
-    DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
 
     if (!is_running) CleanUp();
     return nextState;
