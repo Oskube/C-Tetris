@@ -36,7 +36,7 @@ extern int GameRender(UI_Functions* data, game* gme);
     \param list Pointer to high score table data
     \param len Lenght of high score array
 */
-extern void DrawHiscores(UI_Functions* data, hiscore_list_entry* list, unsigned len);
+extern void DrawHiscoresBegin(UI_Functions* data);
 
 /**
     \brief Asks user name for high score table

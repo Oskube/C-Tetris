@@ -11,7 +11,7 @@ int CursesInit(UI_Functions* ret) {
     ret->UIGameCleanup = GameWindowsFree;
     ret->UIGameRender = GameRender;
 
-    ret->UIHiscoreRender = DrawHiscores;
+    ret->UIHiscoreRenderBegin = DrawHiscoresBegin;
     ret->UIHiscoreGetName = GetNewHiscoreName;
 
     ret->UITextRender = DrawText;

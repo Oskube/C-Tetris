@@ -45,7 +45,7 @@ int UI_SDLGameRender(UI_Functions* funs, game* gme) {
     return 0;
 }
 
-void UI_SDLHiscoreRender(UI_Functions* funs, hiscore_list_entry* list, unsigned len) {
+void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
 
 }
 

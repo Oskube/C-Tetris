@@ -106,38 +106,14 @@ int GameRender(UI_Functions* data, game* gme) {
     return 0;
 }
 
-void DrawHiscores(UI_Functions* data, hiscore_list_entry* list, unsigned len) {
+void DrawHiscoresBegin(UI_Functions* data) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
 
     clear();
-    unsigned topy = 1;
-    unsigned topx = 3;
-    mvwprintw(dst, topy++, getmaxx(dst)/2-10, "TOP %d SCORES", len);
-    mvwprintw(dst, topy, topx, "#");
-    mvwprintw(dst, topy, topx+3, "NAME");
-    mvwprintw(dst, topy, topx+20, "SCORE");
-    mvwprintw(dst, topy, topx+30, "LINES");
-    mvwprintw(dst, topy, topx+37, "LVL");
-    mvwprintw(dst, topy, topx+41, "TIME");
-    mvwprintw(dst, topy++, topx+50, "DATE");
-    for (unsigned i=0; i<len; i++, topy++) {
-        time_t date = (time_t)list[i].date;
-        unsigned sec    = list[i].time/1000;
-        unsigned min    = sec%3600/60;
-        unsigned tenth  = list[i].time/100%10;
-        sec %= 60;
-
-        mvwprintw(dst, topy, topx, "%d", i+1);
-        mvwprintw(dst, topy, topx+3, "%s", list[i].name);
-        mvwprintw(dst, topy, topx+20, "%d", list[i].score);
-        mvwprintw(dst, topy, topx+30, "%d", list[i].rows);
-        mvwprintw(dst, topy, topx+37, "%d", list[i].lvl);
-        mvwprintw(dst, topy, topx+41, "%d:%02d.%d", min, sec, tenth);
-        mvwprintw(dst, topy, topx+50, "%s", ctime(&date));
-    }
 }
+
 void GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
@@ -163,7 +139,7 @@ void DrawText(UI_Functions* data, unsigned x, unsigned y, unsigned color, char* 
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
 
-    mvwprintw(dst, x, y, "%s", text);
+    mvwprintw(dst, y, x, "%s", text);
 }
 
 int ReadKey(UI_Functions* funs) {

@@ -36,7 +36,7 @@ int UI_SDLInit(UI_Functions* ret) {
     //  Init SDL
     SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        fprintf(stderr, "\nCould not initialize SDL:  %s\n", SDL_GetError());
+        fprintf(stderr, "Could not initialize SDL:  %s\n", SDL_GetError());
         return -1;
     }
 
@@ -50,7 +50,7 @@ int UI_SDLInit(UI_Functions* ret) {
         SDL_WINDOW_RESIZABLE
     );
     if (!win) {
-        fprintf(stderr, "\nCould not create window: %s\n", SDL_GetError());
+        fprintf(stderr, "Could not create window: %s\n", SDL_GetError());
         SDL_Quit();
         return -2;
     }
@@ -59,7 +59,7 @@ int UI_SDLInit(UI_Functions* ret) {
     SDL_Renderer* ren;
     ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     if (!ren) {
-        fprintf(stderr, "\nCould not create renderer: %s\n", SDL_GetError());
+        fprintf(stderr, "Could not create renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(win);
         SDL_Quit();
         return -2;
@@ -69,7 +69,7 @@ int UI_SDLInit(UI_Functions* ret) {
     //  Set data pointer
     ui_sdl_data* sdldata = (ui_sdl_data*)malloc(sizeof(ui_sdl_data));
     if (!sdldata) {
-        fprintf(stderr, "\nCould not create data container.\n");
+        fprintf(stderr, "Could not create data container.\n");
         SDL_DestroyRenderer(ren);
         SDL_DestroyWindow(win);
         SDL_Quit();
@@ -93,7 +93,7 @@ int UI_SDLInit(UI_Functions* ret) {
     SDL_Rect clip = {.w = 16, .h = 16 };
     SDL_Rect* fclips = ClipRect(&canvas, &clip, &clipLen);
     if (!fclips || !font) {
-        fprintf(stderr, "\nCould'nt initialize font: %s\n", SDL_GetError());
+        fprintf(stderr, "Could'nt initialize font: %s\n", SDL_GetError());
         return -3;
     }
 
@@ -116,7 +116,7 @@ int UI_SDLInit(UI_Functions* ret) {
     ret->UIGameCleanup = UI_SDLGameCleanUp;
     ret->UIGameRender = UI_SDLGameRender;
 
-    ret->UIHiscoreRender = UI_SDLHiscoreRender;
+    ret->UIHiscoreRenderBegin = UI_SDLHiscoreRenderBegin;
     ret->UIHiscoreGetName = UI_SDLHiscoreGetName;
 
     ret->UITextRender = UI_SDLTextRender;

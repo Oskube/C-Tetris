@@ -20,7 +20,7 @@ typedef struct _uifun {
     int  (*UIGameRender)(struct _uifun*, game*);   /**< Renders current game view */
 
     //  High scores
-    void (*UIHiscoreRender)(struct _uifun*, hiscore_list_entry* list, unsigned len); /**< Render hiscore view */
+    void (*UIHiscoreRenderBegin)(struct _uifun*); /**< Beginning of render hiscore view loop */
     void (*UIHiscoreGetName)(struct _uifun*, hiscore_list_entry* entry, unsigned maxlen, unsigned rank); /**< Asks user name */
 
     //  Common

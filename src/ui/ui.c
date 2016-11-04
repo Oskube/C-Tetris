@@ -13,8 +13,7 @@ int MainProgram(int argc, char** argv) {
     *data = NULL;
 
     //  Defines what UI is used
-    UI_Functions ui;
-    ui.UIGameInit = NULL; // Make sure this is NULL, because it's used to determine if struct is initialized
+    UI_Functions ui = {NULL};
 
     CurrentState = NULL;
     state_game_data gameSettings = {.randomiser = RANDOMISER_TGM};
@@ -55,8 +54,9 @@ int MainProgram(int argc, char** argv) {
         //  Select SDL UI
         else if (!strcmp(argv[i], "-SDL") && !ui.UIGameInit) {
             if (UI_SDLInit(&ui) != 0) {
-                fprintf(stderr, "SDL Initialization failed");
+                fprintf(stderr, "ERROR: SDL Initialization failed!\n");
                 CurrentState = NULL;
+                UI_SDLCleanUp(&ui);
             }
         }
     }
@@ -72,7 +72,7 @@ int MainProgram(int argc, char** argv) {
     //  Default UI is curses
     if (!ui.UIGameInit) {
         if (CursesInit(&ui) != 0) {
-            fprintf(stderr, "Curses Initialization failed");
+            fprintf(stderr, "ERROR: Curses Initialization failed!\n");
             CurrentState = NULL;
         }
     }
@@ -85,7 +85,7 @@ int MainProgram(int argc, char** argv) {
 
     if (*data != NULL) free(*data);
     free(data);
-    ui.UICleanup(&ui);
+    if (ui.UICleanup) ui.UICleanup(&ui);
 
     return 0;
 }

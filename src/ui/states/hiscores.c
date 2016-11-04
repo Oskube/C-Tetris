@@ -6,8 +6,12 @@
 
 #include "states.h"
 
+#define COLOR_RED 0xffff0000
+
 static int StateInit(UI_Functions* funs, void** data);
 static void CleanUp();
+
+static void DrawHiscores(UI_Functions* funs, hiscore_list_entry* list, unsigned len);
 
 static bool is_running = false;
 static hiscore_list_entry scoreTable[HISCORE_LENGTH] = {0};
@@ -30,8 +34,6 @@ void* StateHiscores(UI_Functions* funs, void** data) {
         SaveHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
         free(entry);
         entry = NULL;
-
-        funs->UIHiscoreRender(funs, scoreTable, HISCORE_LENGTH);
     }
 
     int input = funs->UIGetInput(funs);
@@ -46,6 +48,7 @@ void* StateHiscores(UI_Functions* funs, void** data) {
         }
     }
 
+    DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
 
     if (!is_running) CleanUp();
     return nextState;
@@ -75,10 +78,52 @@ int StateInit(UI_Functions* funs, void** data) {
         }
         *data = NULL;
     }
-    funs->UIHiscoreRender(funs, scoreTable, HISCORE_LENGTH);
+    DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
     return 0;
 }
 
 void CleanUp() {
     is_running = false;
+}
+
+void DrawHiscores(UI_Functions* funs, hiscore_list_entry* list, unsigned len) {
+    if (!list) return;
+
+    funs->UIHiscoreRenderBegin(funs);
+
+    char temp[256] = {0};
+    unsigned topy = 1;
+    unsigned topx = 3;
+
+    snprintf(temp, 256, "TOP %d SCORES", len);
+    funs->UITextRender(funs, 34, topy++, COLOR_RED, temp);
+    funs->UITextRender(funs, topx,topy, COLOR_RED, "#");
+    funs->UITextRender(funs, topx+3,topy, COLOR_RED, "NAME");
+    funs->UITextRender(funs, topx+20,topy, COLOR_RED, "SCORE");
+    funs->UITextRender(funs, topx+30,topy, COLOR_RED, "LINES");
+    funs->UITextRender(funs, topx+37,topy, COLOR_RED, "LVL");
+    funs->UITextRender(funs, topx+41,topy, COLOR_RED, "TIME");
+    funs->UITextRender(funs, topx+50,topy++, COLOR_RED, "DATE");
+
+    for (unsigned i=0; i<len; i++, topy++) {
+        time_t date = (time_t)list[i].date;
+        unsigned sec    = list[i].time/1000;
+        unsigned min    = sec%3600/60;
+        unsigned tenth  = list[i].time/100%10;
+        sec %= 60;
+
+        snprintf(temp, 256, "%d", i+1);
+        funs->UITextRender(funs, topx, topy, COLOR_RED, temp);
+
+        funs->UITextRender(funs, topx+3, topy, COLOR_RED, list[i].name);
+        snprintf(temp, 256, "%d", list[i].score);
+        funs->UITextRender(funs, topx+20, topy, COLOR_RED, temp);
+        snprintf(temp, 256, "%d", list[i].rows);
+        funs->UITextRender(funs, topx+30, topy, COLOR_RED, temp);
+        snprintf(temp, 256, "%d", list[i].lvl);
+        funs->UITextRender(funs, topx+37, topy, COLOR_RED, temp);
+        snprintf(temp, 256, "%d:%02d.%d", min, sec, tenth);
+        funs->UITextRender(funs, topx+41, topy, COLOR_RED, temp);
+        funs->UITextRender(funs, topx+50, topy, COLOR_RED, ctime(&date));
+    }
 }
