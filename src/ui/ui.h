@@ -30,6 +30,7 @@ typedef struct _uifun {
     int  (*UIGameInit)(struct _uifun*);     /**< Initializes game state UI */
     void (*UIGameCleanup)(struct _uifun*);
     int  (*UIGameRender)(struct _uifun*, game*);   /**< Renders current game view */
+    void (*UIBeginGameInfo)(struct _uifun*, unsigned* x, unsigned* y);
 
     //  High scores
     void (*UIHiscoreRenderBegin)(struct _uifun*); /**< Beginning of render hiscore view loop */
@@ -37,7 +38,9 @@ typedef struct _uifun {
 
     //  Common
     void (*UITextRender)(struct _uifun*, unsigned x, unsigned y, text_color color, char* text); /**< Renders text to UI */
-    int  (*UIGetInput)(struct _uifun*);         /**< Read user input */
+    void (*UITetrominoRender)(struct _uifun*, unsigned topx, unsigned topy, tetromino* tetr);   /**< Render given tetromino */
+
+    int  (*UIGetInput)(struct _uifun*);             /**< Read user input */
     unsigned (*UIGetMillis)();                      /**< Return milliseconds since start up */
     int (*UIGetExePath)(struct _uifun*, char* buf, unsigned len);   /**< Return path to executable */
     void (*UIMainLoopEnd)(struct _uifun*);          /**< Function called at the end of the main loop */

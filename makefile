@@ -16,6 +16,7 @@ CORE := $(addprefix $(ODIR)/core/, $(CORE))
 UICOMMON =  states/hiscores.o \
 			states/playdemo.o \
 			states/game.o \
+			states/common.o \
 			ui.o \
 			os/linux_funs.o
 UICOMMON := $(addprefix $(ODIR)/ui/, $(UICOMMON))

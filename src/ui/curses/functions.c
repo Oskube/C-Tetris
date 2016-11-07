@@ -13,11 +13,7 @@ typedef struct {
     WINDOW* info; /**< Window for game info */
 } curses_game_windows;
 
-//  Renders tetromino
-static void DrawTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx);
-//  Renders statistics of pieces spawned
-static void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx);
-
+static const char symbols[7] = "0#$&8@%";
 /**
     \brief Renders the current state of the game
     \param src Pointer to the game instance
@@ -25,15 +21,6 @@ static void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx);
     \param showghost Determines if the ghost is shown
 */
 static void DrawMap(game* src, curses_game_windows* wins, bool showghost);
-
-/**
-    \brief Renders game info
-
-    Shows current score and count of spawned pieces.
-    \param src Pointer to the game instance
-    \param wins Pointer to the windows used in rendering
-*/
-static void DrawInfo(game* src, curses_game_windows* wins);
 
 int GameWindowsInit(UI_Functions* data) {
     if (!data) return -1;
@@ -72,7 +59,6 @@ int GameWindowsInit(UI_Functions* data) {
     gwins->map = map;
     gwins->info = info;
     cdata->additional = (void*)gwins;
-
     return 0;
 }
 
@@ -102,7 +88,6 @@ int GameRender(UI_Functions* data, game* gme) {
     if (windows == NULL) return -2;
 
     DrawMap(gme, windows, true);
-    DrawInfo(gme, windows);
     return 0;
 }
 
@@ -165,6 +150,31 @@ int GetExePath(UI_Functions* data, char* buf, unsigned len) {
     return GetExecutablePath(buf, len);
 }
 
+void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetromino* tetr) {
+    if (tetr == NULL) return;
+
+    // Block locations are relative to tetromino's center
+    topy += 1;
+    topx += 1;
+    block** blocks = tetr->blocks;
+    for (unsigned i=0; i<4; i++) {
+        mvaddch(topy+blocks[i]->y, topx+blocks[i]->x, symbols[blocks[i]->symbol]);
+    }
+}
+
+void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y) {
+    if (!data) return;
+
+    curses_data* cdata = (curses_data*)data->data;
+    curses_game_windows* wins = (curses_game_windows*)cdata->additional;
+    WINDOW* dst = wins->info;
+    getbegyx(dst, *y, *x); // get position
+    *x += 2; // move off the border
+    *y += 1;
+
+    werase(dst); // make sure info window is clean.
+    wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
+}
 /**
     Static functions
 **/
@@ -178,7 +188,6 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
     unsigned w = src->map.width;
     unsigned h = src->map.height;
     block** mask = src->map.blockMask;
-    const char symbols[7] = "0#$&8@%";
 
     unsigned len = w*h;
     unsigned row = 1;
@@ -224,46 +233,4 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
             }
         }
     }
-}
-
-void DrawInfo(game* src, curses_game_windows* wins) {
-    if (!src || !wins || !wins->info) return;
-
-    WINDOW* dst = wins->info;
-
-    game_info* s = &src->info;
-    werase(dst);
-    wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
-
-    mvwprintw(dst, 1, 2, "Level: %d (%d)", s->level, s->rowsToNextLevel);
-    mvwprintw(dst, 2, 2, "Lines: %d", s->rows);
-    mvwprintw(dst, 3, 2, "Score: %d", s->score);
-    mvwprintw(dst, 4, 2, "Next:", s->score);
-    DrawTetromino(src->info.next, dst, 4, 8);
-    DrawStats(src, dst, 8, 2);
-}
-
-void DrawTetromino(tetromino* tetr, WINDOW* dst, unsigned topy, unsigned topx) {
-    if (tetr == NULL) return;
-
-    const char symbols[7] = "0#$&8@%";
-    // Block locations are relative to tetromino's center
-    topy += 1;
-    topx += 1;
-    block** blocks = tetr->blocks;
-    for (unsigned i=0; i<4; i++) {
-        mvwaddch(dst, topy+blocks[i]->y, topx+blocks[i]->x, symbols[blocks[i]->symbol]);
-    }
-}
-
-void DrawStats(game* src, WINDOW* dst, unsigned topy, unsigned topx) {
-    unsigned total = 0;
-    static char* minos = "OITLJSZ";
-    mvwprintw(dst, topy++, topx, "Statistics:");
-    for (unsigned i=0; i < 7; topy++, i++) {
-        mvwprintw(dst, topy, topx, "%c: %d", minos[i], src->info.countTetromino[i]);
-        total += src->info.countTetromino[i];
-    }
-
-    mvwprintw(dst, topy, topx, "Total: %d", total);
 }

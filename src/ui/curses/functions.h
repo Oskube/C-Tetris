@@ -75,3 +75,16 @@ extern void LoopEnd(UI_Functions* data);
     \return Ammount of bytes copied
 */
 extern int GetExePath(UI_Functions* data, char* buf, unsigned len);
+
+/**
+    \brief Draw tetromino
+*/
+extern void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetromino* tetr);
+
+/**
+    \brief Init info area and returns position
+    \param data Pointer to data used
+    \param x    Pointer where top-x is returned
+    \param y    Pointer where top-y is returned
+*/
+extern void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y);

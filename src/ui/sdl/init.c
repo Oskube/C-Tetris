@@ -97,6 +97,9 @@ int UI_SDLInit(UI_Functions* ret) {
         return -3;
     }
 
+    //  Render cell rect
+    sdldata->cell = (SDL_Rect*)calloc(1, sizeof(SDL_Rect));
+    AdjustCell(sdldata->cell, WIN_DEF_W, WIN_DEF_H);
 
     //  Assign data
     ret->data = (void*)sdldata;
@@ -115,11 +118,13 @@ int UI_SDLInit(UI_Functions* ret) {
     ret->UIGameInit = UI_SDLGameInit;
     ret->UIGameCleanup = UI_SDLGameCleanUp;
     ret->UIGameRender = UI_SDLGameRender;
+    ret->UIBeginGameInfo = UI_SDLBeginGameInfo;
 
     ret->UIHiscoreRenderBegin = UI_SDLHiscoreRenderBegin;
     ret->UIHiscoreGetName = UI_SDLHiscoreGetName;
 
     ret->UITextRender = UI_SDLTextRender;
+    ret->UITetrominoRender = UI_SDLTetrominoRender;
     ret->UIGetInput = UI_SDLGetInput;
     ret->UIGetMillis = UI_SDLMillis;
     ret->UIGetExePath = UI_SDLGetExePath;
@@ -140,6 +145,7 @@ void UI_SDLCleanUp(UI_Functions* ptr) {
         //  Destroy font
         SDL_DestroyTexture(sdldata->font);
         free(sdldata->fontClips);
+        free(sdldata->cell);
 
         free(sdldata);
     }

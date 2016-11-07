@@ -30,7 +30,7 @@ static int sym_colors[] = {
     3, 6, 5, 9, 4, 2, 1
 };
 
-static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, tetromino* tetr, int offset_x, int offset_y);
+static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, tetromino* tetr, int offset_x, int offset_y, bool ignorearea);
 static void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme);
 
 int UI_SDLGameInit(UI_Functions* funs) {
@@ -57,6 +57,11 @@ int UI_SDLGameRender(UI_Functions* funs, game* gme) {
     return 0;
 }
 
+void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y) {
+    *x = 20;
+    *y = 1;
+}
+
 void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
     //  Make sure screen is clear
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
@@ -71,8 +76,8 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
 
     int winW, winH;
     SDL_GetWindowSize(data->window, &winW, &winH);
-    int rowSz = winW/24;
-    int colSz = winW/80;
+    int rowSz = data->cell->h;
+    int colSz = data->cell->w;
 
     unsigned len = strlen(text);
 
@@ -81,7 +86,7 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
     SDL_SetTextureAlphaMod(data->font, 255);
 
     //  Text rendering
-    SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = colSz};
+    SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = rowSz};
     for (unsigned i = 0; i < len; i++, target.x += colSz) {
         int ch = toupper(text[i]);
 
@@ -94,7 +99,20 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
     }
 }
 
+void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tetromino* tetr) {
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
+
+    unsigned c = tetr->blocks[0]->symbol;
+    c = sym_colors[c];
+    SDL_SetRenderDrawColor(data->renderer, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
+
+    // topy += 2;
+    DrawTetromino(data->renderer, data->cell, tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
+}
+
 int UI_SDLGetInput(UI_Functions* funs) {
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
+
     SDL_Event ev;
     int ret = 0;
     while (SDL_PollEvent(&ev)) {
@@ -113,6 +131,12 @@ int UI_SDLGetInput(UI_Functions* funs) {
                     } break;
                 }
             } break;
+            case SDL_WINDOWEVENT: {
+                if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                    AdjustCell(data->cell, ev.window.data1, ev.window.data2);
+                }
+            } break;
+
             default: break;
         }
     }
@@ -144,6 +168,14 @@ void UI_SDLMainLoopEnd(UI_Functions* funs) {
         SDL_RenderClear(data->renderer);
         data->clearScreen = false;
     }
+}
+
+void AdjustCell(SDL_Rect* cell, unsigned winW, unsigned winH) {
+    // 80x24 cells in a window
+    cell->x = 0;
+    cell->y = 0;
+    cell->w = winW / 80;
+    cell->h = winH / 24;
 }
 
 /***********************
@@ -190,18 +222,18 @@ void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme) {
     unsigned c = gme->active->blocks[0]->symbol;
     c = sym_colors[c];
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
-    DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y);
+    DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y, false);
     unsigned tmp = gme->active->y;
 
     //  Ghost
     gme->active->y = gme->info.ghostY;
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 64);
-    DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y);
+    DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y, false);
     gme->active->y = tmp;
 }
 
-void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, tetromino* tetr, int offset_x, int offset_y) {
-    if (!tetr || !ren) return;
+void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, tetromino* tetr, int offset_x, int offset_y, bool ignorearea) {
+    if (!tetr || !ren || !cell) return;
 
     unsigned origoX = tetr->x;
     unsigned origoY = tetr->y -2; // 2 hidden rows
@@ -213,6 +245,6 @@ void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, tetromino* tetr, int offse
         temp.y = cell->h * (blocks[i]->y +origoY) +offset_y;
 
         //  Determine if block is in game area
-        if (temp.y >= offset_y) SDL_RenderFillRect(ren, &temp);
+        if (ignorearea || temp.y >= offset_y) SDL_RenderFillRect(ren, &temp);
     }
 }

@@ -10,11 +10,13 @@ int CursesInit(UI_Functions* ret) {
     ret->UIGameInit = GameWindowsInit;
     ret->UIGameCleanup = GameWindowsFree;
     ret->UIGameRender = GameRender;
+    ret->UIBeginGameInfo = BeginGameInfo;
 
     ret->UIHiscoreRenderBegin = DrawHiscoresBegin;
     ret->UIHiscoreGetName = GetNewHiscoreName;
 
     ret->UITextRender = DrawText;
+    ret->UITetrominoRender = DrawTetromino;
     ret->UIGetInput = ReadKey;
     ret->UIGetMillis = GetTime;
     ret->UIGetExePath = GetExePath;

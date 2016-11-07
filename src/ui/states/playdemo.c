@@ -59,6 +59,7 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
         funs->UITextRender(funs, 0, 0, color_red, text);
     }
     Update(gme);
+    ShowGameInfo(funs, gme, true);
     funs->UIGameRender(funs, gme);
 
     //  If quit requested

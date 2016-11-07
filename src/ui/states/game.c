@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "states.h"
+#include "common.h"
 
 //  Static fsm functions
 static int StateInit(UI_Functions* funs, void** data);
@@ -52,6 +53,7 @@ void* StateGame(UI_Functions* funs, void** data) {
     }
 
     Update(gme);
+    ShowGameInfo(funs, gme, true);
     funs->UIGameRender(funs, gme);
 
     //  If quit requested
