@@ -32,6 +32,7 @@ static int sym_colors[] = {
 
 static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, tetromino* tetr, int offset_x, int offset_y, bool ignorearea);
 static void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme);
+static int HandleEvents(UI_Functions* funs, SDL_Event* ev);
 
 int UI_SDLGameInit(UI_Functions* funs) {
 
@@ -63,12 +64,46 @@ void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y) {
 }
 
 void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
-    //  Make sure screen is clear
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
+
+    //  Make sure screen is clear
+    SDL_RenderClear(data->renderer);
 }
 
 void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
+    //  Generate message
+    char msg[128] = {0};
+    snprintf(msg, 128, "NEW HISCORE, %d. PLACE.", rank);
 
+    SDL_StartTextInput();
+    SDL_Event ev;
+    while (1) {
+        if (SDL_PollEvent(&ev)) {
+            //  Return
+            if (ev.type == SDL_KEYUP && ev.key.keysym.scancode == SDL_SCANCODE_RETURN) break;
+            //  Erasing
+            else if (ev.type == SDL_KEYDOWN && ev.key.keysym.scancode == SDL_SCANCODE_BACKSPACE) {
+                unsigned len = strlen(entry->name);
+                if (len > 0) entry->name[len-1] = '\0';
+            }
+            else if (ev.type == SDL_TEXTINPUT) {
+                //  Append text input
+                if (strlen(entry->name) < 15) {
+                    strncat(entry->name, ev.text.text, 1);
+                }
+            } else {
+                //  Handle other events
+                HandleEvents(funs, &ev);
+            }
+
+            //  Render text
+            UI_SDLTextRender(funs, 30, 15, color_red, msg);
+            UI_SDLTextRender(funs, 6, rank+2, color_red, entry->name);
+            UI_SDLMainLoopEnd(funs);
+        }
+    }
+
+    SDL_StopTextInput();
 }
 
 void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color color, char* text) {
@@ -111,34 +146,10 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
 }
 
 int UI_SDLGetInput(UI_Functions* funs) {
-    ui_sdl_data* data = (ui_sdl_data*)funs->data;
-
     SDL_Event ev;
     int ret = 0;
-    while (SDL_PollEvent(&ev)) {
-        switch (ev.type) {
-            case SDL_QUIT: return 'q';
-            case SDL_KEYDOWN: {
-                switch (ev.key.keysym.scancode) {
-                    case SDL_SCANCODE_SPACE: return ' ';
-                    default: {
-                        char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev.key.keysym.scancode));
-                        //   All letters and numbers (excluding numpad-nums)
-                        if (strlen(key) == 1) {
-                            // printf("Button down: %c\n", key[0]);
-                            return key[0];
-                        }
-                    } break;
-                }
-            } break;
-            case SDL_WINDOWEVENT: {
-                if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                    AdjustCell(data->cell, ev.window.data1, ev.window.data2);
-                }
-            } break;
-
-            default: break;
-        }
+    if (SDL_PollEvent(&ev)) {
+        return HandleEvents(funs, &ev);
     }
     return 0;
 }
@@ -246,5 +257,33 @@ void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, tetromino* tetr, int offse
 
         //  Determine if block is in game area
         if (ignorearea || temp.y >= offset_y) SDL_RenderFillRect(ren, &temp);
+    }
+}
+
+int HandleEvents(UI_Functions* funs, SDL_Event* ev) {
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
+
+    switch (ev->type) {
+        case SDL_QUIT: return 'q';
+        case SDL_KEYDOWN: {
+            switch (ev->key.keysym.scancode) {
+                case SDL_SCANCODE_SPACE: return ' ';
+                default: {
+                    char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
+                    //   All letters and numbers (excluding numpad-nums)
+                    if (strlen(key) == 1) {
+                        // printf("Button down: %c\n", key[0]);
+                        return key[0];
+                    }
+                } break;
+            }
+        } break;
+        case SDL_WINDOWEVENT: {
+            if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                AdjustCell(data->cell, ev->window.data1, ev->window.data2);
+            }
+        } break;
+
+        default: break;
     }
 }
