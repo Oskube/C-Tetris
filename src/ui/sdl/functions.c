@@ -70,40 +70,44 @@ void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
     SDL_RenderClear(data->renderer);
 }
 
-void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
+int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
     //  Generate message
     char msg[128] = {0};
     snprintf(msg, 128, "NEW HISCORE, %d. PLACE.", rank);
 
     SDL_StartTextInput();
     SDL_Event ev;
-    while (1) {
-        if (SDL_PollEvent(&ev)) {
-            //  Return
-            if (ev.type == SDL_KEYUP && ev.key.keysym.scancode == SDL_SCANCODE_RETURN) break;
-            //  Erasing
-            else if (ev.type == SDL_KEYDOWN && ev.key.keysym.scancode == SDL_SCANCODE_BACKSPACE) {
-                unsigned len = strlen(entry->name);
-                if (len > 0) entry->name[len-1] = '\0';
-            }
-            else if (ev.type == SDL_TEXTINPUT) {
-                //  Append text input
-                if (strlen(entry->name) < 15) {
-                    strncat(entry->name, ev.text.text, 1);
-                }
-            } else {
-                //  Handle other events
-                HandleEvents(funs, &ev);
-            }
 
-            //  Render text
-            UI_SDLTextRender(funs, 30, 15, color_red, msg);
-            UI_SDLTextRender(funs, 6, rank+2, color_red, entry->name);
-            UI_SDLMainLoopEnd(funs);
+    int ret = 0;
+    if (SDL_PollEvent(&ev)) {
+        //  Return
+        if (ev.type == SDL_KEYUP && ev.key.keysym.scancode == SDL_SCANCODE_RETURN) {
+            ret = event_ready;
+        }
+        //  Erasing
+        else if (ev.type == SDL_KEYDOWN && ev.key.keysym.scancode == SDL_SCANCODE_BACKSPACE) {
+            unsigned len = strlen(entry->name);
+            if (len > 0) {
+                entry->name[len-1] = '\0';
+            }
+        }
+        else if (ev.type == SDL_TEXTINPUT) {
+            //  Append text input
+            if (strlen(entry->name) < maxlen) {
+                strncat(entry->name, ev.text.text, 1);
+            }
+        } else {
+            //  Handle other events
+            ret = HandleEvents(funs, &ev);
+            if (isalpha(ret)) ret = 0; // ignore controls of high score
         }
     }
 
-    SDL_StopTextInput();
+    //  Render text
+    UI_SDLTextRender(funs, 30, 15, color_red, msg);
+    UI_SDLTextRender(funs, 35, 16, color_red, entry->name);
+
+    return ret;
 }
 
 void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color color, char* text) {
@@ -147,7 +151,6 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
 
 int UI_SDLGetInput(UI_Functions* funs) {
     SDL_Event ev;
-    int ret = 0;
     if (SDL_PollEvent(&ev)) {
         return HandleEvents(funs, &ev);
     }
@@ -281,9 +284,11 @@ int HandleEvents(UI_Functions* funs, SDL_Event* ev) {
         case SDL_WINDOWEVENT: {
             if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                 AdjustCell(data->cell, ev->window.data1, ev->window.data2);
+                return event_req_refresh;
             }
         } break;
 
         default: break;
     }
+    return 0;
 }

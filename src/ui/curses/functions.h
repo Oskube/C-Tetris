@@ -44,7 +44,7 @@ extern void DrawHiscoresBegin(UI_Functions* data);
     \param entry Pointer to high score entry
     \param rank Ranking of the new entry
 */
-extern void GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
+extern int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
 
 /**
     \brief Draw given text to given position

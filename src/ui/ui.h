@@ -11,6 +11,11 @@
 extern int MainProgram(int argc, char** argv);
 
 typedef enum {
+    event_ready = 1,
+    event_req_refresh
+} ui_events;
+
+typedef enum {
     color_black,
     color_red,
     color_green,
@@ -34,7 +39,7 @@ typedef struct _uifun {
 
     //  High scores
     void (*UIHiscoreRenderBegin)(struct _uifun*); /**< Beginning of render hiscore view loop */
-    void (*UIHiscoreGetName)(struct _uifun*, hiscore_list_entry* entry, unsigned maxlen, unsigned rank); /**< Asks user name */
+    int (*UIHiscoreGetName)(struct _uifun*, hiscore_list_entry* entry, unsigned maxlen, unsigned rank); /**< Asks user name */
 
     //  Common
     void (*UITextRender)(struct _uifun*, unsigned x, unsigned y, text_color color, char* text); /**< Renders text to UI */

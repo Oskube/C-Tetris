@@ -99,7 +99,7 @@ void DrawHiscoresBegin(UI_Functions* data) {
     clear();
 }
 
-void GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
+int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
@@ -118,7 +118,10 @@ void GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned m
     noecho();
     curs_set(0);
     clear();
+
+    return event_ready;
 }
+
 void DrawText(UI_Functions* data, unsigned x, unsigned y, text_color color, char* text) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;

@@ -29,7 +29,7 @@ extern int  UI_SDLGameRender(UI_Functions* funs, game* gme);
 extern void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y);
 
 extern void UI_SDLHiscoreRenderBegin(UI_Functions* funs);
-extern void UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
+extern int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
 
 extern void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color color, char* text);
 extern void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tetromino* tetr);

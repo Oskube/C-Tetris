@@ -1,3 +1,4 @@
+#include <stdlib.h> /* snprintf() */
 #include <stdlib.h>
 #include <string.h> /* strncpy */
 #include <time.h> /* time() */
@@ -26,16 +27,21 @@ void* StateHiscores(UI_Functions* funs, void** data) {
     void* (*nextState)(UI_Functions*, void**);
     nextState = StateHiscores;
 
+    int input = 0;
     if (entry != NULL) {
-        funs->UIHiscoreGetName(funs, entry, 15, rank+1);
-        AddScoreToList(scoreTable, HISCORE_LENGTH, entry);
-        SaveHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
-        free(entry);
-        entry = NULL;
         DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
+        input = funs->UIHiscoreGetName(funs, entry, 15, rank+1);
+        if (input == event_ready) {
+            AddScoreToList(scoreTable, HISCORE_LENGTH, entry);
+            SaveHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
+            free(entry);
+            entry = NULL;
+            DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
+        }
+    } else {
+        input = funs->UIGetInput(funs);
     }
 
-    int input = funs->UIGetInput(funs);
     switch (tolower(input)) {
         case 'q': {
             is_running = false;
@@ -45,6 +51,9 @@ void* StateHiscores(UI_Functions* funs, void** data) {
             is_running = false;
             nextState = StateGame;
         }
+        case event_req_refresh: DrawHiscores(funs, scoreTable, HISCORE_LENGTH); break;
+
+        default: break;
     }
 
     if (!is_running) CleanUp();
