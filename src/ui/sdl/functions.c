@@ -75,13 +75,17 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
     char msg[128] = {0};
     snprintf(msg, 128, "NEW HISCORE, %d. PLACE.", rank);
 
+    static bool inputStarted = false;   //  Ignore garbage from previous events, like 'q' from escaping the game state
     SDL_StartTextInput();
     SDL_Event ev;
+
+    unsigned drawCaret = (SDL_GetTicks() & 0x3FF) >> 9;
 
     int ret = 0;
     if (SDL_PollEvent(&ev)) {
         //  Return
         if (ev.type == SDL_KEYUP && ev.key.keysym.scancode == SDL_SCANCODE_RETURN) {
+            inputStarted = false;
             ret = event_ready;
         }
         //  Erasing
@@ -93,9 +97,10 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
         }
         else if (ev.type == SDL_TEXTINPUT) {
             //  Append text input
-            if (strlen(entry->name) < maxlen) {
+            if (strlen(entry->name) < maxlen && inputStarted) {
                 strncat(entry->name, ev.text.text, 1);
             }
+            inputStarted = true;
         } else {
             //  Handle other events
             ret = HandleEvents(funs, &ev);
@@ -106,6 +111,17 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
     //  Render text
     UI_SDLTextRender(funs, 30, 15, color_red, msg);
     UI_SDLTextRender(funs, 35, 16, color_red, entry->name);
+
+    if (drawCaret) {
+        ui_sdl_data* data = (ui_sdl_data*)funs->data;
+        SDL_Rect caret = *(data->cell);
+        caret.x = (strlen(entry->name)+35) * caret.w;
+        caret.y = caret.h * 16;
+
+        SDL_SetRenderDrawColor(data->renderer, sdl_colors[1].r, sdl_colors[1].g, sdl_colors[1].b, 255);
+        SDL_RenderFillRect(data->renderer, &caret);
+        SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, 255);
+    }
 
     return ret;
 }
@@ -182,6 +198,8 @@ void UI_SDLMainLoopEnd(UI_Functions* funs) {
         SDL_RenderClear(data->renderer);
         data->clearScreen = false;
     }
+
+    SDL_Delay(2); // Sleep 2 ms to reduce CPU usage
 }
 
 void AdjustCell(SDL_Rect* cell, unsigned winW, unsigned winH) {

@@ -138,8 +138,6 @@ int UI_SDLInit(UI_Functions* ret) {
 void UI_SDLCleanUp(UI_Functions* ptr) {
     if (ptr && ptr->data) {
         ui_sdl_data* sdldata = (ui_sdl_data*)ptr->data;
-        SDL_DestroyRenderer(sdldata->renderer);
-        SDL_DestroyWindow(sdldata->window);
         SDL_free(sdldata->basePath);
 
         //  Destroy font
@@ -147,6 +145,9 @@ void UI_SDLCleanUp(UI_Functions* ptr) {
         free(sdldata->fontClips);
         free(sdldata->cell);
 
+        //  Destroy rendere & window
+        SDL_DestroyRenderer(sdldata->renderer);
+        SDL_DestroyWindow(sdldata->window);
         free(sdldata);
     }
     SDL_Quit();
