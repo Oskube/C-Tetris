@@ -5,9 +5,11 @@
 
     Initializes SDL, creates renderer, window and assigns correct functions to given struct
     \param ret Pointer to struct used in returning function pointers
+    \param argc Argument count
+    \param argv Pointer to all program arguments
     \return 0 on success
 */
-extern int UI_SDLInit(UI_Functions* ret);
+extern int UI_SDLInit(UI_Functions* ret, int argc, char** argv);
 
 /**
     \brief Cleans up and closes SDL

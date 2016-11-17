@@ -12,6 +12,9 @@ int MainProgram(int argc, char** argv) {
     void** data = (void**)malloc(sizeof(void*));
     *data = NULL;
 
+    //  Pointer to UI initialization function
+    int (*UIInitFun)(UI_Functions*, int, char**);
+    UIInitFun = NULL;
     //  Defines what UI is used
     UI_Functions ui = {NULL};
 
@@ -40,7 +43,7 @@ int MainProgram(int argc, char** argv) {
         }
         else if (!strcmp(argv[i], "--randomiser")) {
             if (argc <= ++i) {
-                fprintf(stderr, "Check arguments:\n--randomiser <name>\nWhere name is 7bag, tgm or random\n");
+                fprintf(stderr, "Check arguments:\n--randomiser <name>\tWhere name is 7bag, tgm or random\n");
                 CurrentState = NULL;
                 break;
             } else if (!strcmp(argv[i], "7bag")) {
@@ -52,12 +55,8 @@ int MainProgram(int argc, char** argv) {
             }
         }
         //  Select SDL UI
-        else if (!strcmp(argv[i], "-SDL") && !ui.UIGameInit) {
-            if (UI_SDLInit(&ui) != 0) {
-                fprintf(stderr, "ERROR: SDL Initialization failed!\n");
-                CurrentState = NULL;
-                UI_SDLCleanUp(&ui);
-            }
+        else if (!strcmp(argv[i], "--SDL") && !ui.UIGameInit) {
+            UIInitFun = UI_SDLInit;
         }
     }
 
@@ -70,11 +69,10 @@ int MainProgram(int argc, char** argv) {
     }
 
     //  Default UI is curses
-    if (!ui.UIGameInit) {
-        if (CursesInit(&ui) != 0) {
-            fprintf(stderr, "ERROR: Curses Initialization failed!\n");
-            CurrentState = NULL;
-        }
+    if (!UIInitFun) UIInitFun = CursesInit;
+    if (UIInitFun(&ui, argc, argv) != 0) {
+        fprintf(stderr, "ERROR: UI init failed!\n");
+        CurrentState = NULL;
     }
 
     while (CurrentState != NULL) {

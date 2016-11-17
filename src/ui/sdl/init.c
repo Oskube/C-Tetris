@@ -32,7 +32,7 @@ static SDL_Texture* LoadImage(SDL_Renderer* ren, const char* path, int* outw, in
 */
 static SDL_Rect* ClipRect(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen);
 
-int UI_SDLInit(UI_Functions* ret) {
+int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     //  Init SDL
     SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -93,7 +93,7 @@ int UI_SDLInit(UI_Functions* ret) {
     SDL_Rect clip = {.w = 16, .h = 16 };
     SDL_Rect* fclips = ClipRect(&canvas, &clip, &clipLen);
     if (!fclips || !font) {
-        fprintf(stderr, "Could'nt initialize font: %s\n", SDL_GetError());
+        fprintf(stderr, "Could not initialize font: %s\n", SDL_GetError());
         return -3;
     }
 

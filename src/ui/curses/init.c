@@ -5,7 +5,7 @@
 #include "functions.h"
 #include "../os/os.h"
 
-int CursesInit(UI_Functions* ret) {
+int CursesInit(UI_Functions* ret, int argc, char** argv) {
     //  Assign all function pointers
     ret->UIGameInit = GameWindowsInit;
     ret->UIGameCleanup = GameWindowsFree;

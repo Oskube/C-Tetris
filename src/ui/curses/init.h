@@ -3,9 +3,11 @@
 /**
     \brief Initializes ncurses
     \param ret Pointer to struct used in returning function pointers
-    \return 0 on success
+    \param argc Argument count
+    \param argv Pointer to all program arguments
+    \return 0 on success 
 */
-extern int CursesInit(UI_Functions* ret);
+extern int CursesInit(UI_Functions* ret, int argc, char** argv);
 
 /**
     \brief Cleans and closes all ncurses related stuff
