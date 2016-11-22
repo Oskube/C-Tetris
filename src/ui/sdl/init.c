@@ -89,13 +89,33 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     SDL_Texture* font = LoadImage(ren, path, &canvas.w, &canvas.h);
 
     //  Clip
-    unsigned clipLen = 0;
     SDL_Rect clip = {.w = 16, .h = 16 };
-    SDL_Rect* fclips = ClipRect(&canvas, &clip, &clipLen);
+    SDL_Rect* fclips = ClipRect(&canvas, &clip, NULL);
     if (!fclips || !font) {
-        fprintf(stderr, "Could not initialize font: %s\n", SDL_GetError());
+        fprintf(stderr, "Could not initialize font. %s\n", SDL_GetError());
         return -3;
     }
+
+    //  Set the font sprite sheet info
+    sdldata->font.texture = font;
+    sdldata->font.clips = fclips;
+    sdldata->font.len = 0;
+
+    sdldata->font1st = '!';
+    sdldata->fontlast = '`';
+
+    //  Load game area background and borders
+    strncpy(path+pathbaseLen, "borders.bmp", 512-pathbaseLen);
+    SDL_Texture* borders = LoadImage(ren, path, &canvas.w, &canvas.h);
+    SDL_Rect* border_clips = ClipRect(&canvas, &clip, NULL);
+    if (!borders || !border_clips) {
+        fprintf(stderr, "Could not load borders. %s\n", SDL_GetError());
+        return -4;
+    }
+
+    sdldata->borders.texture = borders;
+    sdldata->borders.clips = border_clips;
+    sdldata->borders.len = 0;
 
     //  Render cell rect
     sdldata->cell = (SDL_Rect*)calloc(1, sizeof(SDL_Rect));
@@ -106,11 +126,6 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     sdldata->window = win;
     sdldata->renderer = ren;
     sdldata->basePath = SDL_GetBasePath();
-
-    sdldata->font = font;
-    sdldata->fontClips = fclips;
-    sdldata->font1st = '!';
-    sdldata->fontlast = '`';
 
     printf("Using base path: %s\n", sdldata->basePath);
 
@@ -140,9 +155,9 @@ void UI_SDLCleanUp(UI_Functions* ptr) {
         ui_sdl_data* sdldata = (ui_sdl_data*)ptr->data;
         SDL_free(sdldata->basePath);
 
+        FreeSpriteSheet(&sdldata->borders);
         //  Destroy font
-        SDL_DestroyTexture(sdldata->font);
-        free(sdldata->fontClips);
+        FreeSpriteSheet(&sdldata->font);
         free(sdldata->cell);
 
         //  Destroy rendere & window
@@ -174,7 +189,7 @@ SDL_Texture* LoadImage(SDL_Renderer* ren, const char* path, int* outw, int* outh
 }
 
 SDL_Rect* ClipRect(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen) {
-    if (!canvas || !cell || !outLen) return NULL;
+    if (!canvas || !cell) return NULL;
     //  Check for <= 0 in dimensions
     if (cell->w <= 0 || cell->h <= 0 || canvas->w <= 0 || canvas->h <= 0) return NULL;
 
@@ -185,21 +200,20 @@ SDL_Rect* ClipRect(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen) {
 
     SDL_Rect* ret = (SDL_Rect*)malloc(sizeof(SDL_Rect)*count);
     if (!ret) return NULL;
-    *outLen = count;
+    if (outLen) *outLen = count;
 
     unsigned x = canvas->x;
     unsigned y = canvas->y;
-    for (unsigned cur = 0; cur < count; cur++) {
+    for (unsigned cur = 0; cur < count; cur++, x = x+cell->w) {
         int nextX = x + cell->w;
         if (nextX > canvas->w) {
             x = canvas->x;
-            y += cell->y;
+            y += cell->h;
         }
         ret[cur].x = x;
         ret[cur].y = y;
         ret[cur].w = cell->w;
         ret[cur].h = cell->h;
-        x = nextX;
     }
 
     return ret;

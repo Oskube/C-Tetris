@@ -3,6 +3,12 @@
 #include "SDL.h"
 #include "../ui.h"
 
+typedef struct {
+    SDL_Texture* texture;
+    SDL_Rect* clips;
+    unsigned len;
+} SpriteSheet;
+
 /**
     \brief Struct for all SDL related stuff needed in UI
 */
@@ -12,12 +18,13 @@ typedef struct {
     char* basePath;
 
     SDL_Rect* cell; /**< Size of a rendered character */
+    unsigned gameAreaWidth; /**< Width of game area in pixels */
 
-    //  Font
-    SDL_Texture* font;
-    SDL_Rect*    fontClips;
-    char         font1st;
-    char         fontlast;
+    SpriteSheet borders;
+    //  Font data
+    SpriteSheet font;
+    char        font1st;
+    char        fontlast;
 
     bool clearScreen;
     void* additional;
@@ -40,3 +47,4 @@ extern unsigned UI_SDLMillis();
 extern void UI_SDLMainLoopEnd(UI_Functions* funs);
 
 extern void AdjustCell(SDL_Rect* cell, unsigned winW, unsigned winH);
+extern void FreeSpriteSheet(SpriteSheet* sheet);

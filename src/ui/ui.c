@@ -9,7 +9,7 @@
 #include "states/states.h"
 
 static char* generalHelp =
-"Usage: tetr [options]\n \
+"Usage: tetr [options]\n\
 General Options:\n \
   --help\t\t\tDisplay this information\n \
   --demo, -d <path>\t\tPlay given demo record\n \

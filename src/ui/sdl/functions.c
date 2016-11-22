@@ -2,8 +2,6 @@
 #include "string.h" /* strlen() */
 #include "functions.h"
 
-#define WINDDOW_PADDING 20
-
 typedef struct {
     unsigned char r, g, b;
 } Color;
@@ -31,10 +29,37 @@ static int sym_colors[] = {
 };
 
 static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, tetromino* tetr, int offset_x, int offset_y, bool ignorearea);
-static void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme);
 static int HandleEvents(UI_Functions* funs, SDL_Event* ev);
 
+/**
+    \brief Render game area
+    \param sdldata Pointer to SDL UI data
+    \param gme     Pointer to the game instance
+*/
+static void DrawMap(ui_sdl_data* sdldata, game* gme);
+
+/**
+    \brief Render a box with given sprite sheet
+
+    Draws a box of given size. Size of box are determined by target, not including borders.
+    \param ren      Pointer to SDL renderer
+    \param cell     Dimensions of the sprite element
+    \param style    Pointer to the sprite sheet
+    \param target   Dimensions of the box contents in pixels
+*/
+static void RenderBox(SDL_Renderer* ren, SDL_Rect* cell, SpriteSheet* style, SDL_Rect* target);
+
+/**
+    \brief Render sprite from a sheet
+    \param ren          SDL Renderer used
+    \param sheet        Pointer to sprite sheet
+    \param clip         Index of the sprite
+    \param pos_target   Area where sprite is rendered
+*/
+static void RenderSprite(SDL_Renderer* ren, SpriteSheet* sheet, unsigned clip, SDL_Rect* pos_target);
+
 int UI_SDLGameInit(UI_Functions* funs) {
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     return 0;
 }
@@ -47,19 +72,15 @@ int UI_SDLGameRender(UI_Functions* funs, game* gme) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     data->clearScreen = true; // request clean screen after rendering
-    int winW, winH;
-    SDL_GetWindowSize(data->window, &winW, &winH);
-    SDL_Rect gameArea = {
-        .x = WINDDOW_PADDING, .y = WINDDOW_PADDING,
-        .w = winW*0.2f, .h = winH - WINDDOW_PADDING*2
-    };
-    if (gameArea.h <= 0) gameArea.h = 1; // Height cannot be <0
-    DrawMap(data->renderer, &gameArea,gme);
+
+    DrawMap(data, gme);
     return 0;
 }
 
 void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y) {
-    *x = 20;
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
+
+    *x = data->gameAreaWidth/data->cell->w + 2;
     *y = 1;
 }
 
@@ -137,8 +158,8 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
     unsigned len = strlen(text);
 
     //  Set text color
-    SDL_SetTextureColorMod(data->font, sdl_colors[color].r, sdl_colors[color].g, sdl_colors[color].b);
-    SDL_SetTextureAlphaMod(data->font, 255);
+    SDL_SetTextureColorMod(data->font.texture, sdl_colors[color].r, sdl_colors[color].g, sdl_colors[color].b);
+    SDL_SetTextureAlphaMod(data->font.texture, 255);
 
     //  Text rendering
     SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = rowSz};
@@ -148,7 +169,7 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
         if (ch <= data->fontlast) {
             int pos = ch - data->font1st;
             if (pos >= 0) {
-                SDL_RenderCopy(data->renderer, data->font, &data->fontClips[pos], &target);
+                RenderSprite(data->renderer, &data->font, pos, &target);
             }
         }
     }
@@ -161,8 +182,9 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
     c = sym_colors[c];
     SDL_SetRenderDrawColor(data->renderer, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
 
-    // topy += 2;
-    DrawTetromino(data->renderer, data->cell, tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
+    SDL_Rect cell = *data->cell;
+    cell.w = cell.h;
+    DrawTetromino(data->renderer, &cell, tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
 }
 
 int UI_SDLGetInput(UI_Functions* funs) {
@@ -210,30 +232,41 @@ void AdjustCell(SDL_Rect* cell, unsigned winW, unsigned winH) {
     cell->h = winH / 24;
 }
 
+void FreeSpriteSheet(SpriteSheet* sheet) {
+    free(sheet->clips);
+    SDL_DestroyTexture(sheet->texture);
+
+    sheet->texture = NULL;
+    sheet->clips = NULL;
+}
+
 /***********************
 Static functions
 ***********************/
-void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme) {
-    SDL_Rect cell = {
-        .w = dstArea->w/MAP_WIDTH, .h = dstArea->h/MAP_HEIGHT,
-        .x = dstArea->x, .y = dstArea->y
-    };
+void DrawMap(ui_sdl_data* sdldata, game* gme) {
+    SDL_Renderer* ren = sdldata->renderer;
+    SDL_Rect cell = *sdldata->cell;
+    cell.w = cell.h;    //  Game area cells are squares
 
-    //  Make sure destination area is even size
-    dstArea->w = cell.w*MAP_WIDTH;
-    dstArea->h = cell.h*MAP_HEIGHT;
-    //  Draw borders
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-    SDL_RenderDrawRect(ren, dstArea);
+    //  Calculate game area
+    SDL_Rect target = cell;
+    target.x = target.w;
+    target.y = target.h;
+    target.w *= MAP_WIDTH;
+    target.h *= MAP_HEIGHT;
+    RenderBox(ren, &cell, &sdldata->borders, &target); // Draw bg and borders
+    sdldata->gameAreaWidth = target.w+target.x; //  Set gameAreaWidth in pixels
 
-    unsigned w = gme->map.width;
-    unsigned h = gme->map.height;
+    //  Game area blocks
     block** mask = gme->map.blockMask;
-    unsigned len = w*h;
-    int rightBorder = dstArea->x+dstArea->w;
+    unsigned len =  gme->map.width*gme->map.height;
+    int rightBorder = target.x+target.w;
+    cell.x = target.x;
+    cell.y = target.y;
 
     SDL_SetRenderDrawColor(ren, 255, 0, 0, 255);
-    for (unsigned pos = w*2; pos < len; pos++) {
+    //  Render the whole game area, except the 2 top rows which are hidden
+    for (unsigned pos = gme->map.width*2; pos < len; pos++) {
         //  If block exists
         if (mask[pos]) {
             //  Change color and render
@@ -244,23 +277,23 @@ void DrawMap(SDL_Renderer* ren, SDL_Rect* dstArea, game* gme) {
         }
 
         cell.x += cell.w;
-        if (cell.x >= rightBorder) { // If row processed move to next
-            cell.x = dstArea->x;
+        if (cell.x >= rightBorder) { // If row processed move to the next row
+            cell.x = target.x;
             cell.y += cell.h;
         }
     }
 
-
+    //  Render active tetromino
     unsigned c = gme->active->blocks[0]->symbol;
     c = sym_colors[c];
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
-    DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y, false);
+    DrawTetromino(ren, &cell, gme->active, target.x, target.y, false);
     unsigned tmp = gme->active->y;
 
-    //  Ghost
+    //  Render ghost
     gme->active->y = gme->info.ghostY;
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 64);
-    DrawTetromino(ren, &cell, gme->active, dstArea->x, dstArea->y, false);
+    DrawTetromino(ren, &cell, gme->active, target.x, target.y, false);
     gme->active->y = tmp;
 }
 
@@ -309,4 +342,50 @@ int HandleEvents(UI_Functions* funs, SDL_Event* ev) {
         default: break;
     }
     return 0;
+}
+
+void RenderBox(SDL_Renderer* ren, SDL_Rect* cell, SpriteSheet* style, SDL_Rect* target) {
+    SDL_Rect pos = *target;
+    pos.w = cell->w;
+    pos.h = cell->h;
+
+    //  background/filling
+    for (; pos.y <= target->h; pos.y += pos.h) {
+        for (pos.x = target->x; pos.x <= target->w; pos.x += pos.w) {
+            RenderSprite(ren, style, 4, &pos);
+        }
+    }
+
+    //  Vertical borders
+    for (pos.y = target->y; pos.y <= target->h; pos.y += pos.h) {
+        pos.x = target->x-cell->w;  //  left
+        RenderSprite(ren, style, 3, &pos);
+
+        pos.x = target->x+target->w; // right
+        RenderSprite(ren, style, 5, &pos);
+    }
+
+    //  Horizontal borders
+    for (pos.x = target->x; pos.x <= target->w; pos.x += pos.w) {
+        pos.y = target->y-cell->h;  //  left
+        RenderSprite(ren, style, 1, &pos);
+
+        pos.y = target->y+target->h; // right
+        RenderSprite(ren, style, 7, &pos);
+    }
+
+    //  Corner pieces
+    pos.x = target->x-cell->w;  // Left-Top
+    pos.y = target->y-cell->h;
+    RenderSprite(ren, style, 0, &pos);
+    pos.x = target->x+target->w; // Right-Top
+    RenderSprite(ren, style, 2, &pos);
+    pos.y = target->y+target->h; // Right-Bottom
+    RenderSprite(ren, style, 8, &pos);
+    pos.x = target->x-cell->w;  // Left-Bottom
+    RenderSprite(ren, style, 6, &pos);
+}
+
+void RenderSprite(SDL_Renderer* ren, SpriteSheet* sheet, unsigned clip, SDL_Rect* pos_target) {
+    SDL_RenderCopy(ren, sheet->texture, &sheet->clips[clip], pos_target);
 }
