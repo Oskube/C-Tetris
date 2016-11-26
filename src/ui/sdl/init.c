@@ -30,7 +30,18 @@ static SDL_Texture* LoadImage(SDL_Renderer* ren, const char* path, int* outw, in
 
     \note Clips rectangle row-by-row
 */
-static SDL_Rect* ClipRect(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen);
+static SDL_Rect* ClipRectBySize(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen);
+
+/**
+    \brief Clip given canvas to smaller rectangles
+    \param canvas   Area to clip
+    \param x        Count of sprite columns
+    \param y        Count of sprite rows
+    \return Array of SDL_Rect*. NULL on error
+
+    \note Returns x*y of even sized rectangles
+*/
+static SDL_Rect* ClipRectByCount(SDL_Rect* canvas, unsigned x, unsigned y);
 
 int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     //  Init SDL
@@ -90,7 +101,7 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
 
     //  Clip
     SDL_Rect clip = {.w = 16, .h = 16 };
-    SDL_Rect* fclips = ClipRect(&canvas, &clip, NULL);
+    SDL_Rect* fclips = ClipRectBySize(&canvas, &clip, NULL);
     if (!fclips || !font) {
         fprintf(stderr, "Could not initialize font. %s\n", SDL_GetError());
         return -3;
@@ -105,9 +116,9 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     sdldata->fontlast = '`';
 
     //  Load game area background and borders
-    strncpy(path+pathbaseLen, "borders.bmp", 512-pathbaseLen);
+    strncpy(path+pathbaseLen, "borders-hires.bmp", 512-pathbaseLen);
     SDL_Texture* borders = LoadImage(ren, path, &canvas.w, &canvas.h);
-    SDL_Rect* border_clips = ClipRect(&canvas, &clip, NULL);
+    SDL_Rect* border_clips = ClipRectByCount(&canvas, 3, 3);
     if (!borders || !border_clips) {
         fprintf(stderr, "Could not load borders. %s\n", SDL_GetError());
         return -4;
@@ -188,7 +199,7 @@ SDL_Texture* LoadImage(SDL_Renderer* ren, const char* path, int* outw, int* outh
     return ret;
 }
 
-SDL_Rect* ClipRect(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen) {
+SDL_Rect* ClipRectBySize(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen) {
     if (!canvas || !cell) return NULL;
     //  Check for <= 0 in dimensions
     if (cell->w <= 0 || cell->h <= 0 || canvas->w <= 0 || canvas->h <= 0) return NULL;
@@ -202,18 +213,45 @@ SDL_Rect* ClipRect(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outLen) {
     if (!ret) return NULL;
     if (outLen) *outLen = count;
 
-    unsigned x = canvas->x;
-    unsigned y = canvas->y;
+    unsigned x = 0;
+    unsigned y = 0;
     for (unsigned cur = 0; cur < count; cur++, x = x+cell->w) {
         int nextX = x + cell->w;
         if (nextX > canvas->w) {
-            x = canvas->x;
+            x = 0;
             y += cell->h;
         }
-        ret[cur].x = x;
-        ret[cur].y = y;
+        ret[cur].x = x + canvas->x;
+        ret[cur].y = y + canvas->y;
         ret[cur].w = cell->w;
         ret[cur].h = cell->h;
+    }
+
+    return ret;
+}
+
+SDL_Rect* ClipRectByCount(SDL_Rect* canvas, unsigned x, unsigned y) {
+    if (!canvas) return NULL;
+
+    //  Calculate step
+    int sX = canvas->w, sY = canvas->h;
+    if (x>0) sX /= x;
+    if (y>0) sY /= y;
+
+    SDL_Rect* ret = (SDL_Rect*)malloc(sizeof(SDL_Rect)*x*y);
+    if (!ret) return NULL;
+
+    //  Clipping
+    int posx = 0, posy = 0;
+    for (unsigned cur = 0; cur < x*y; posx += sX, cur++) {
+        if (posx >= canvas->w) {
+            posx = 0;
+            posy += sY;
+        }
+        ret[cur].x = posx + canvas->x;
+        ret[cur].y = posy + canvas->y;
+        ret[cur].w = sX;
+        ret[cur].h = sY;
     }
 
     return ret;
