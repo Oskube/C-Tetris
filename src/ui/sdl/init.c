@@ -128,6 +128,18 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     sdldata->borders.clips = border_clips;
     sdldata->borders.len = 0;
 
+    //  Load block textures
+    strncpy(path+pathbaseLen, "blocks.bmp", 512-pathbaseLen);
+    SDL_Texture* blocks = LoadImage(ren, path, &canvas.w, &canvas.h);
+    SDL_Rect* block_clips = ClipRectByCount(&canvas, 7, 1);
+    if (!blocks || !block_clips) {
+        fprintf(stderr, "Could not load block texture. %s\n", SDL_GetError());
+        return -4;
+    }
+
+    sdldata->blocks.texture = blocks;
+    sdldata->blocks.clips = block_clips;
+
     //  Render cell rect
     sdldata->cell = (SDL_Rect*)calloc(1, sizeof(SDL_Rect));
     AdjustCell(sdldata->cell, WIN_DEF_W, WIN_DEF_H);

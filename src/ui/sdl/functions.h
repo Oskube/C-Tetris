@@ -20,7 +20,10 @@ typedef struct {
     SDL_Rect* cell; /**< Size of a rendered character */
     unsigned gameAreaWidth; /**< Width of game area in pixels */
 
+    //  Game sprites
     SpriteSheet borders;
+    SpriteSheet blocks;
+
     //  Font data
     SpriteSheet font;
     char        font1st;

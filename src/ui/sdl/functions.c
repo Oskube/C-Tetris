@@ -28,7 +28,7 @@ static int sym_colors[] = {
     3, 6, 5, 9, 4, 2, 1
 };
 
-static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, tetromino* tetr, int offset_x, int offset_y, bool ignorearea);
+static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, SpriteSheet* texture, tetromino* tetr, int offset_x, int offset_y, bool ignorearea);
 static int HandleEvents(UI_Functions* funs, SDL_Event* ev);
 
 /**
@@ -59,13 +59,13 @@ static void RenderBox(SDL_Renderer* ren, SDL_Rect* cell, SpriteSheet* style, SDL
 static void RenderSprite(SDL_Renderer* ren, SpriteSheet* sheet, unsigned clip, SDL_Rect* pos_target);
 
 int UI_SDLGameInit(UI_Functions* funs) {
-    ui_sdl_data* data = (ui_sdl_data*)funs->data;
+    // ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     return 0;
 }
 
 void UI_SDLGameCleanUp(UI_Functions* funs) {
-
+    //  Free everything allocated during the game state by UI component
 }
 
 int UI_SDLGameRender(UI_Functions* funs, game* gme) {
@@ -184,7 +184,7 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
 
     SDL_Rect cell = *data->cell;
     cell.w = cell.h;
-    DrawTetromino(data->renderer, &cell, tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
+    DrawTetromino(data->renderer, &cell, &(data->blocks), tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
 }
 
 int UI_SDLGetInput(UI_Functions* funs) {
@@ -271,9 +271,10 @@ void DrawMap(ui_sdl_data* sdldata, game* gme) {
         if (mask[pos]) {
             //  Change color and render
             unsigned sym = mask[pos]->symbol;
-            sym = sym_colors[sym];
-            SDL_SetRenderDrawColor(ren, sdl_colors[sym].r, sdl_colors[sym].g, sdl_colors[sym].b, 255);
-            SDL_RenderFillRect(ren, &cell);
+            // sym = sym_colors[sym];
+            // SDL_SetRenderDrawColor(ren, sdl_colors[sym].r, sdl_colors[sym].g, sdl_colors[sym].b, 255);
+            // SDL_RenderFillRect(ren, &cell);
+            RenderSprite(ren, &(sdldata->blocks), sym, &cell);
         }
 
         cell.x += cell.w;
@@ -287,17 +288,19 @@ void DrawMap(ui_sdl_data* sdldata, game* gme) {
     unsigned c = gme->active->blocks[0]->symbol;
     c = sym_colors[c];
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
-    DrawTetromino(ren, &cell, gme->active, target.x, target.y, false);
+    DrawTetromino(ren, &cell, &(sdldata->blocks), gme->active, target.x, target.y, false);
     unsigned tmp = gme->active->y;
 
     //  Render ghost
     gme->active->y = gme->info.ghostY;
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 64);
-    DrawTetromino(ren, &cell, gme->active, target.x, target.y, false);
+    SDL_SetTextureAlphaMod(sdldata->blocks.texture, 64);
+    DrawTetromino(ren, &cell, &(sdldata->blocks), gme->active, target.x, target.y, false);
+    SDL_SetTextureAlphaMod(sdldata->blocks.texture, 255);
     gme->active->y = tmp;
 }
 
-void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, tetromino* tetr, int offset_x, int offset_y, bool ignorearea) {
+void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, SpriteSheet* texture, tetromino* tetr, int offset_x, int offset_y, bool ignorearea) {
     if (!tetr || !ren || !cell) return;
 
     unsigned origoX = tetr->x;
@@ -310,7 +313,10 @@ void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cell, tetromino* tetr, int offse
         temp.y = cell->h * (blocks[i]->y +origoY) +offset_y;
 
         //  Determine if block is in game area
-        if (ignorearea || temp.y >= offset_y) SDL_RenderFillRect(ren, &temp);
+        if (ignorearea || temp.y >= offset_y) {
+            if (texture) RenderSprite(ren, texture, tetr->blocks[0]->symbol, &temp);
+            else SDL_RenderFillRect(ren, &temp);
+        }
     }
 }
 
@@ -323,7 +329,7 @@ int HandleEvents(UI_Functions* funs, SDL_Event* ev) {
             switch (ev->key.keysym.scancode) {
                 case SDL_SCANCODE_SPACE: return ' ';
                 default: {
-                    char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
+                    const char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
                     //   All letters and numbers (excluding numpad-nums)
                     if (strlen(key) == 1) {
                         // printf("Button down: %c\n", key[0]);
