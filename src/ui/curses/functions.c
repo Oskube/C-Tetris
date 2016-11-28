@@ -92,15 +92,11 @@ int GameRender(UI_Functions* data, game* gme) {
 }
 
 void DrawHiscoresBegin(UI_Functions* data) {
-    if (!data) return;
-    curses_data* cdata = (curses_data*)data->data;
-    WINDOW* dst = cdata->win;
-
     clear();
 }
 
 int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
-    if (!data) return;
+    if (!data) return 0;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
 

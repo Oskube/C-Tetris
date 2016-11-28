@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "states.h"
+#include "common.h"
 
 //  Static fsm functions
 static int StateInit(UI_Functions* funs, void** data);

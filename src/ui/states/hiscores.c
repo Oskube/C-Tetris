@@ -1,5 +1,5 @@
-#include <stdlib.h> /* snprintf() */
-#include <stdlib.h>
+#include <stdio.h> /* snprintf() */
+#include <stdlib.h> /* free() */
 #include <string.h> /* strncpy */
 #include <time.h> /* time() */
 #include <ctype.h> /* tolower() */

@@ -1,3 +1,5 @@
+#include <stdio.h> /* snprintf() */
+
 #include "common.h"
 
 void ShowGameInfo(UI_Functions* funs, game* gme, unsigned showNext) {
