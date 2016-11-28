@@ -21,11 +21,11 @@ typedef struct {
     unsigned gameAreaWidth; /**< Width of game area in pixels */
 
     //  Game sprites
-    SpriteSheet borders;
-    SpriteSheet blocks;
+    SpriteSheet* borders;
+    SpriteSheet* blocks;
 
     //  Font data
-    SpriteSheet font;
+    SpriteSheet* font;
     char        font1st;
     char        fontlast;
 

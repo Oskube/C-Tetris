@@ -1,5 +1,6 @@
-#include <stdio.h>
-#include <string.h>
+#include <stdio.h> // malloc(), atoi()
+#include <stdbool.h>
+#include <string.h> // stcmp(), strlen(), strcpy(), strncpy()
 
 #define SDL_MAIN_HANDLED
 #include "SDL.h"
@@ -42,8 +43,44 @@ static SDL_Rect* ClipRectBySize(SDL_Rect* canvas, SDL_Rect* cell, unsigned *outL
     \note Returns x*y of even sized rectangles
 */
 static SDL_Rect* ClipRectByCount(SDL_Rect* canvas, unsigned x, unsigned y);
+/**
+    \brief Returns SpriteSheet struct with given data
+    \param texture Pointer to the texture
+    \param clips   Pointer to clips
+    \param len     Sprite count
+    \return Pointer to the allocated SpriteSheet
+
+    \note Remember to free allocated memory!
+    \see FreeSpriteSheet(SpriteSheet* sheet)
+*/
+static SpriteSheet* GenerateSheet(SDL_Texture* texture, SDL_Rect* clips, unsigned len);
+
+static const char* CmdLineHelpStr =
+" SDL\n\
+   --no-textures\t\tDisables texture loading, except for font\n\
+   --width <w>, --height <h>\tSet window size\n";
 
 int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
+    bool ena_textures = true;
+    int winWidth = WIN_DEF_W, winHeight = WIN_DEF_H;
+
+    //  Process command line arguments
+    for (int pos = 1; pos < argc; pos++) {
+        if (strcmp(argv[pos], "--no-textures") == 0) {
+            ena_textures = false;
+        }
+        else if (strcmp(argv[pos], "--width") == 0) {
+            if (++pos >= argc) continue; // ignore if no value
+            winWidth = atoi(argv[pos]);
+            if (winWidth < 10) winWidth = 10;
+        }
+        else if (strcmp(argv[pos], "--height") == 0) {
+            if (++pos >= argc) continue; // ignore if no value
+            winHeight = atoi(argv[pos]);
+            if (winHeight < 10) winHeight = 10;
+        }
+    }
+
     //  Init SDL
     SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -57,7 +94,7 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
         WIN_TITLE,
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        WIN_DEF_W, WIN_DEF_H,
+        winWidth, winHeight,
         SDL_WINDOW_RESIZABLE
     );
     if (!win) {
@@ -107,42 +144,40 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
         return -3;
     }
 
-    //  Set the font sprite sheet info
-    sdldata->font.texture = font;
-    sdldata->font.clips = fclips;
-    sdldata->font.len = 0;
+    //  Generate font sprite sheet
+    sdldata->font = GenerateSheet(font, fclips, 0);
 
     sdldata->font1st = '!';
     sdldata->fontlast = '`';
 
-    //  Load game area background and borders
-    strncpy(path+pathbaseLen, "borders-hires.bmp", 512-pathbaseLen);
-    SDL_Texture* borders = LoadImage(ren, path, &canvas.w, &canvas.h);
-    SDL_Rect* border_clips = ClipRectByCount(&canvas, 3, 3);
-    if (!borders || !border_clips) {
-        fprintf(stderr, "Could not load borders. %s\n", SDL_GetError());
-        return -4;
-    }
+    sdldata->borders = NULL;
+    sdldata->blocks = NULL;
+    if (ena_textures) {
+        //  Load game area background and borders
+        strncpy(path+pathbaseLen, "borders-hires.bmp", 512-pathbaseLen);
+        SDL_Texture* borders = LoadImage(ren, path, &canvas.w, &canvas.h);
+        SDL_Rect* border_clips = ClipRectByCount(&canvas, 3, 3);
+        if (!borders || !border_clips) {
+            fprintf(stderr, "Could not load borders. %s\n", SDL_GetError());
+            return -4;
+        }
+        sdldata->borders = GenerateSheet(borders, border_clips, 0);
 
-    sdldata->borders.texture = borders;
-    sdldata->borders.clips = border_clips;
-    sdldata->borders.len = 0;
+        //  Load block textures
+        strncpy(path+pathbaseLen, "blocks.bmp", 512-pathbaseLen);
+        SDL_Texture* blocks = LoadImage(ren, path, &canvas.w, &canvas.h);
+        SDL_Rect* block_clips = ClipRectByCount(&canvas, 7, 1);
+        if (!blocks || !block_clips) {
+            fprintf(stderr, "Could not load block texture. %s\n", SDL_GetError());
+            return -4;
+        }
 
-    //  Load block textures
-    strncpy(path+pathbaseLen, "blocks.bmp", 512-pathbaseLen);
-    SDL_Texture* blocks = LoadImage(ren, path, &canvas.w, &canvas.h);
-    SDL_Rect* block_clips = ClipRectByCount(&canvas, 7, 1);
-    if (!blocks || !block_clips) {
-        fprintf(stderr, "Could not load block texture. %s\n", SDL_GetError());
-        return -4;
-    }
-
-    sdldata->blocks.texture = blocks;
-    sdldata->blocks.clips = block_clips;
+        sdldata->blocks = GenerateSheet(blocks, block_clips, 0);
+    } // ena_textures
 
     //  Render cell rect
     sdldata->cell = (SDL_Rect*)calloc(1, sizeof(SDL_Rect));
-    AdjustCell(sdldata->cell, WIN_DEF_W, WIN_DEF_H);
+    AdjustCell(sdldata->cell, winWidth, winHeight);
 
     //  Assign data
     ret->data = (void*)sdldata;
@@ -178,9 +213,10 @@ void UI_SDLCleanUp(UI_Functions* ptr) {
         ui_sdl_data* sdldata = (ui_sdl_data*)ptr->data;
         SDL_free(sdldata->basePath);
 
-        FreeSpriteSheet(&sdldata->borders);
+        FreeSpriteSheet(sdldata->blocks);
+        FreeSpriteSheet(sdldata->borders);
         //  Destroy font
-        FreeSpriteSheet(&sdldata->font);
+        FreeSpriteSheet(sdldata->font);
         free(sdldata->cell);
 
         //  Destroy rendere & window
@@ -189,6 +225,10 @@ void UI_SDLCleanUp(UI_Functions* ptr) {
         free(sdldata);
     }
     SDL_Quit();
+}
+
+const char* UI_SDLGetHelp() {
+    return CmdLineHelpStr;
 }
 
 /**
@@ -267,4 +307,16 @@ SDL_Rect* ClipRectByCount(SDL_Rect* canvas, unsigned x, unsigned y) {
     }
 
     return ret;
+}
+
+
+static SpriteSheet* GenerateSheet(SDL_Texture* texture, SDL_Rect* clips, unsigned len) {
+    SpriteSheet* sheet = (SpriteSheet*)malloc(sizeof(SpriteSheet));
+    if (sheet) {
+        sheet->texture = texture;
+        sheet->clips = clips;
+        sheet->len = len;
+    }
+
+    return sheet;
 }

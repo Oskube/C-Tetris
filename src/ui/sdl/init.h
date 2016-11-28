@@ -15,3 +15,9 @@ extern int UI_SDLInit(UI_Functions* ret, int argc, char** argv);
     \brief Cleans up and closes SDL
 */
 extern void UI_SDLCleanUp(UI_Functions* ptr);
+
+/**
+    \brief Get command line help for SDL UI
+    \param Return pointer to help string
+*/
+extern const char* UI_SDLGetHelp();

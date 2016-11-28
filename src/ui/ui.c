@@ -79,7 +79,7 @@ int MainProgram(int argc, char** argv) {
         //  In case of invalid arguments, print help and quit
         if (invalidArgs) {
             fprintf(stderr, "Check arguments!\n");
-            printf("%s%s", generalHelp, CursesGetHelp());
+            printf("%s%s%s", generalHelp, CursesGetHelp(), UI_SDLGetHelp());
             CurrentState = NULL;
             break;
         }

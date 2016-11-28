@@ -159,8 +159,8 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
     unsigned len = strlen(text);
 
     //  Set text color
-    SDL_SetTextureColorMod(data->font.texture, sdl_colors[color].r, sdl_colors[color].g, sdl_colors[color].b);
-    SDL_SetTextureAlphaMod(data->font.texture, 255);
+    SDL_SetTextureColorMod(data->font->texture, sdl_colors[color].r, sdl_colors[color].g, sdl_colors[color].b);
+    SDL_SetTextureAlphaMod(data->font->texture, 255);
 
     //  Text rendering
     SDL_Rect target = {.x = x*colSz, .y = y*rowSz, .w = colSz, .h = rowSz};
@@ -170,7 +170,7 @@ void UI_SDLTextRender(UI_Functions* funs, unsigned x, unsigned y, text_color col
         if (ch <= data->fontlast) {
             int pos = ch - data->font1st;
             if (pos >= 0) {
-                RenderSprite(data->renderer, &data->font, pos, &target);
+                RenderSprite(data->renderer, data->font, pos, &target);
             }
         }
     }
@@ -185,7 +185,7 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
 
     SDL_Rect cell = *data->cell;
     cell.w = cell.h;
-    DrawTetromino(data->renderer, &cell, &(data->blocks), tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
+    DrawTetromino(data->renderer, &cell, data->blocks, tetr, data->cell->w*topx, (data->cell->h)*(topy), true);
 }
 
 int UI_SDLGetInput(UI_Functions* funs) {
@@ -238,11 +238,14 @@ void AdjustCell(SDL_Rect* cell, unsigned winW, unsigned winH) {
 }
 
 void FreeSpriteSheet(SpriteSheet* sheet) {
+    if (!sheet) return; // nothing to free
+
     free(sheet->clips);
     SDL_DestroyTexture(sheet->texture);
 
     sheet->texture = NULL;
     sheet->clips = NULL;
+    free(sheet);
 }
 
 /***********************
@@ -260,7 +263,7 @@ void DrawMap(UI_Functions* funs, game* gme) {
     target.y = target.h;
     target.w *= MAP_WIDTH;
     target.h *= MAP_HEIGHT;
-    RenderBox(ren, &cell, &sdldata->borders, &target); // Draw bg and borders
+    RenderBox(ren, &cell, sdldata->borders, &target); // Draw bg and borders
     sdldata->gameAreaWidth = target.w+target.x; //  Set gameAreaWidth in pixels
 
     //  Don't render blocks if paused
@@ -287,10 +290,15 @@ void DrawMap(UI_Functions* funs, game* gme) {
         if (mask[pos]) {
             //  Change color and render
             unsigned sym = mask[pos]->symbol;
-            // sym = sym_colors[sym];
-            // SDL_SetRenderDrawColor(ren, sdl_colors[sym].r, sdl_colors[sym].g, sdl_colors[sym].b, 255);
-            // SDL_RenderFillRect(ren, &cell);
-            RenderSprite(ren, &(sdldata->blocks), sym, &cell);
+
+            // if texture loaded, use it
+            if (sdldata->blocks) {
+                RenderSprite(ren, sdldata->blocks, sym, &cell);
+            } else {
+                sym = sym_colors[sym];
+                SDL_SetRenderDrawColor(ren, sdl_colors[sym].r, sdl_colors[sym].g, sdl_colors[sym].b, 255);
+                SDL_RenderFillRect(ren, &cell);
+            }
         }
 
         cell.x += cell.w;
@@ -304,15 +312,19 @@ void DrawMap(UI_Functions* funs, game* gme) {
     unsigned c = gme->active->blocks[0]->symbol;
     c = sym_colors[c];
     SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 255);
-    DrawTetromino(ren, &cell, &(sdldata->blocks), gme->active, target.x, target.y, false);
+    DrawTetromino(ren, &cell, sdldata->blocks, gme->active, target.x, target.y, false);
     unsigned tmp = gme->active->y;
 
     //  Render ghost
     gme->active->y = gme->info.ghostY;
-    SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 64);
-    SDL_SetTextureAlphaMod(sdldata->blocks.texture, 64);
-    DrawTetromino(ren, &cell, &(sdldata->blocks), gme->active, target.x, target.y, false);
-    SDL_SetTextureAlphaMod(sdldata->blocks.texture, 255);
+    if (sdldata->blocks) {
+        SDL_SetTextureAlphaMod(sdldata->blocks->texture, 64);
+        DrawTetromino(ren, &cell, sdldata->blocks, gme->active, target.x, target.y, false);
+        SDL_SetTextureAlphaMod(sdldata->blocks->texture, 255);
+    } else {
+        SDL_SetRenderDrawColor(ren, sdl_colors[c].r, sdl_colors[c].g, sdl_colors[c].b, 64);
+        DrawTetromino(ren, &cell, sdldata->blocks, gme->active, target.x, target.y, false);
+    }
     gme->active->y = tmp;
 }
 
@@ -371,6 +383,11 @@ void RenderBox(SDL_Renderer* ren, SDL_Rect* cell, SpriteSheet* style, SDL_Rect* 
     pos.w = cell->w;
     pos.h = cell->h;
 
+    //  If no sprite sheet provided
+    if (!style) {
+        SDL_RenderDrawRect(ren, target);
+        return;
+    }
     //  background/filling
     for (; pos.y <= target->h; pos.y += pos.h) {
         for (pos.x = target->x; pos.x <= target->w; pos.x += pos.w) {
