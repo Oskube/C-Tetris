@@ -113,7 +113,7 @@ typedef struct {
     \remark You must use FreeGame() to free allocated memory.
     \note 2 top rows are expected to be hidden.
 */
-extern game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fnTime)());
+extern game* GameInitialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fnTime)());
 
 /**
     \brief Intialize demo playback
@@ -125,14 +125,14 @@ extern game* Initialize(unsigned width, unsigned height, randomiser_type randomi
 
     \remark You must use FreeGame() to free allocated memory.
 */
-extern game* InitDemoGame(unsigned width, unsigned height, unsigned (*fnTime)(), demo* record);
+extern game* GameInitDemo(unsigned width, unsigned height, unsigned (*fnTime)(), demo* record);
 
 /**
     \brief Process one step of game logic
     \param ptr Pointer to game instance
     \return Number of rows destroyed. If negative something else has happened.
 */
-extern int Update(game* ptr);
+extern int GameUpdate(game* ptr);
 
 /**
    \brief Processes given user input with game instance.
@@ -140,26 +140,26 @@ extern int Update(game* ptr);
    \param input Input from user
    \return 0 on success
 */
-extern int ProcessInput(game* ptr, player_input input);
+extern int GameProcessInput(game* ptr, player_input input);
 
 /**
     \brief Free memory allocated for the game.
     \param ptr Pointer to the game instance being freed
 */
-extern void FreeGame(game* ptr);
+extern void GameFree(game* ptr);
 
 /**
     \brief Reset given game
     \param ptr Pointer to game instance
 */
-extern void ResetGame(game* ptr);
+extern void GameReset(game* ptr);
 
 /**
     \brief Get game duration
     \param ptr Pointer to the game instance
     \return Duration in milliseconds
 */
-extern unsigned GetGameTime(game* ptr);
+extern unsigned GameGetTime(game* ptr);
 
 /**
     \brief Toggle pause

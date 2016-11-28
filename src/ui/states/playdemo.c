@@ -43,7 +43,7 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
         //  Process instructions until we have to wait for the next one
         while (inst->time < demoTime) {
             //  Send instruction to game instance
-            ProcessInput(gme, (player_input)inst->instruction);
+            GameProcessInput(gme, (player_input)inst->instruction);
             //  Proceed to next instruction
             demoPosition = demoPosition->next;
             countInstruction++;
@@ -58,7 +58,7 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
         }
         funs->UITextRender(funs, 0, 0, color_red, text);
     }
-    Update(gme);
+    GameUpdate(gme);
     ShowGameInfo(funs, gme, true);
     funs->UIGameRender(funs, gme);
 
@@ -88,7 +88,7 @@ int StateInit(UI_Functions* funs, void** data) {
     }
 
     //  Init demo game
-    gme = InitDemoGame(MAP_WIDTH, MAP_HEIGHT+2, funs->UIGetMillis, record);
+    gme = GameInitDemo(MAP_WIDTH, MAP_HEIGHT+2, funs->UIGetMillis, record);
 
     demoPosition = record->instrsFirst; //  Set demo position to begining
     start = funs->UIGetMillis(); //  Set starting time of playback
@@ -98,7 +98,7 @@ int StateInit(UI_Functions* funs, void** data) {
 }
 
 void StateCleanUp(UI_Functions* funs) {
-    FreeGame(gme);
+    GameFree(gme);
     gme = NULL;
     free(demoPath);
     demoPath = NULL;

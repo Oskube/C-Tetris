@@ -31,11 +31,11 @@ void* StateGame(UI_Functions* funs, void** data) {
     //  Read and process user input
     int input = funs->UIGetInput(funs);
     switch (tolower(input)) {
-        case 'w': ProcessInput(gme, INPUT_ROTATE); break;
-        case 'a': ProcessInput(gme, INPUT_LEFT); break;
-        case 's': ProcessInput(gme, INPUT_DOWN); break;
-        case 'd': ProcessInput(gme, INPUT_RIGHT); break;
-        case ' ': ProcessInput(gme, INPUT_SET); break;
+        case 'w': GameProcessInput(gme, INPUT_ROTATE); break;
+        case 'a': GameProcessInput(gme, INPUT_LEFT); break;
+        case 's': GameProcessInput(gme, INPUT_DOWN); break;
+        case 'd': GameProcessInput(gme, INPUT_RIGHT); break;
+        case ' ': GameProcessInput(gme, INPUT_SET); break;
         case 'q': is_running = false; break;
         case 'p': GameTogglePause(gme); break;
         case 'r': if ((gme->info.status & GAME_STATUS_END) && !alreadySaved) {
@@ -53,7 +53,7 @@ void* StateGame(UI_Functions* funs, void** data) {
         default: break;
     }
 
-    Update(gme);
+    GameUpdate(gme);
     ShowGameInfo(funs, gme, true);
     funs->UIGameRender(funs, gme);
 
@@ -67,7 +67,7 @@ void* StateGame(UI_Functions* funs, void** data) {
         e->score = gme->info.score;
         e->rows = gme->info.rows;
         e->lvl = gme->info.level;
-        e->time = GetGameTime(gme);
+        e->time = GameGetTime(gme);
 
         StateCleanUp(funs);
         return StateHiscores;
@@ -90,7 +90,7 @@ int StateInit(UI_Functions* funs, void** data) {
         *data = NULL;
     }
 
-    gme = Initialize(MAP_WIDTH, MAP_HEIGHT+2, settings.randomiser, funs->UIGetMillis);
+    gme = GameInitialize(MAP_WIDTH, MAP_HEIGHT+2, settings.randomiser, funs->UIGetMillis);
     if (!gme) {
         fprintf(stderr, "CORE: Couldn't initialize game");
         funs->UIGameCleanup(funs);
@@ -105,7 +105,7 @@ int StateInit(UI_Functions* funs, void** data) {
     \brief State cleanup
 */
 void StateCleanUp(UI_Functions* funs) {
-    FreeGame(gme);
+    GameFree(gme);
     gme = NULL;
 
     //  Free sub windows

@@ -24,7 +24,7 @@ static void TetrominoFree(tetromino* ptr);
 static int CalcGhost(game* ptr);
 static void HardDrop(game* ptr);
 
-game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fnTime)()) {
+game* GameInitialize(unsigned width, unsigned height, randomiser_type randomiser, unsigned (*fnTime)()) {
     if (width == 0 || height == 0 || fnTime == NULL) return NULL;
     game* ptrGame = (game*)malloc(sizeof(game));
     if (!ptrGame) return NULL;
@@ -45,25 +45,25 @@ game* Initialize(unsigned width, unsigned height, randomiser_type randomiser, un
     //  Allocate memory for blockmask and initialize it 0
     ptrGame->map.blockMask = (block**)calloc(width*height, sizeof(block*) * width*height);
     if (!ptrGame->map.blockMask) {
-        FreeGame(ptrGame);
+        GameFree(ptrGame);
         return NULL;
     }
 
     //  Randomiser setup
     if(!SetRandomiser(ptrGame, randomiser)) {
-        FreeGame(ptrGame);
+        GameFree(ptrGame);
         return NULL;
     }
 
-    ResetGame(ptrGame);
+    GameReset(ptrGame);
     return ptrGame;
 }
 
-game* InitDemoGame(unsigned width, unsigned height, unsigned (*fnTime)(), demo* record) {
+game* GameInitDemo(unsigned width, unsigned height, unsigned (*fnTime)(), demo* record) {
     if (!record) return NULL;
 
     //  Initialize game like always
-    game* ret = Initialize(width, height, RANDOMISER_RANDOM, fnTime);
+    game* ret = GameInitialize(width, height, RANDOMISER_RANDOM, fnTime);
     if (!ret) return NULL;
     game_info* info = &ret->info;
 
@@ -88,7 +88,7 @@ game* InitDemoGame(unsigned width, unsigned height, unsigned (*fnTime)(), demo* 
     return ret;
 }
 
-int Update(game* ptr) {
+int GameUpdate(game* ptr) {
     if (!ptr) return -1;
     if (ptr->info.status & GAME_STATUS_END) return -2;
     else if (ptr->info.status & GAME_STATUS_PAUSE) return 0;
@@ -162,7 +162,7 @@ int Update(game* ptr) {
     return ret;
 }
 
-int ProcessInput(game* ptr, player_input input) {
+int GameProcessInput(game* ptr, player_input input) {
     if (!ptr) return -1;
     if (ptr->info.status & (GAME_STATUS_END | GAME_STATUS_PAUSE)) return -2;
 
@@ -190,7 +190,7 @@ int ProcessInput(game* ptr, player_input input) {
     return ret;
 }
 
-void FreeGame(game* ptr) {
+void GameFree(game* ptr) {
     if (!ptr) return;
 
     //  Free randomiser data
@@ -219,7 +219,7 @@ void FreeGame(game* ptr) {
     free(ptr);
 }
 
-void ResetGame(game* ptr) {
+void GameReset(game* ptr) {
     if (ptr == NULL) return;
     //  Reset map
     unsigned len = ptr->map.width * ptr->map.height;
@@ -277,7 +277,7 @@ void ResetGame(game* ptr) {
     CalcGhost(ptr);
 }
 
-unsigned GetGameTime(game* ptr) {
+unsigned GameGetTime(game* ptr) {
     if (ptr==NULL) return 0;
 
     return ptr->fnMillis() - (ptr->info.timeStarted);
