@@ -36,7 +36,7 @@ static int HandleEvents(UI_Functions* funs, SDL_Event* ev);
     \param sdldata Pointer to SDL UI data
     \param gme     Pointer to the game instance
 */
-static void DrawMap(ui_sdl_data* sdldata, game* gme);
+static void DrawMap(UI_Functions* funs, game* gme);
 
 /**
     \brief Render a box with given sprite sheet
@@ -73,7 +73,7 @@ int UI_SDLGameRender(UI_Functions* funs, game* gme) {
 
     data->clearScreen = true; // request clean screen after rendering
 
-    DrawMap(data, gme);
+    DrawMap(funs, gme);
     return 0;
 }
 
@@ -243,7 +243,8 @@ void FreeSpriteSheet(SpriteSheet* sheet) {
 /***********************
 Static functions
 ***********************/
-void DrawMap(ui_sdl_data* sdldata, game* gme) {
+void DrawMap(UI_Functions* funs, game* gme) {
+    ui_sdl_data* sdldata = (ui_sdl_data*)funs->data;
     SDL_Renderer* ren = sdldata->renderer;
     SDL_Rect cell = *sdldata->cell;
     cell.w = cell.h;    //  Game area cells are squares
@@ -256,6 +257,16 @@ void DrawMap(ui_sdl_data* sdldata, game* gme) {
     target.h *= MAP_HEIGHT;
     RenderBox(ren, &cell, &sdldata->borders, &target); // Draw bg and borders
     sdldata->gameAreaWidth = target.w+target.x; //  Set gameAreaWidth in pixels
+
+    //  Don't render blocks if paused
+    if (gme->info.status & GAME_STATUS_PAUSE) {
+        SDL_Rect cell = *sdldata->cell;
+        //  Center the text
+        unsigned x = (target.x + target.w) / cell.w / 2 - 4;
+        unsigned y = (target.y + target.h) / cell.h / 2;
+        UI_SDLTextRender(funs, x, y, color_white, "Game paused!");
+        return;
+    }
 
     //  Game area blocks
     block** mask = gme->map.blockMask;

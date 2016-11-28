@@ -37,7 +37,8 @@ void* StateGame(UI_Functions* funs, void** data) {
         case 'd': ProcessInput(gme, INPUT_RIGHT); break;
         case ' ': ProcessInput(gme, INPUT_SET); break;
         case 'q': is_running = false; break;
-        case 'p': if (gme->info.ended && !alreadySaved) {
+        case 'p': GameTogglePause(gme); break;
+        case 'r': if ((gme->info.status & GAME_STATUS_END) && !alreadySaved) {
             alreadySaved = true;
 
             char* name = GenerateDemoName(funs);

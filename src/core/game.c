@@ -90,7 +90,8 @@ game* InitDemoGame(unsigned width, unsigned height, unsigned (*fnTime)(), demo* 
 
 int Update(game* ptr) {
     if (!ptr) return -1;
-    if (ptr->info.ended) return -2;
+    if (ptr->info.status & GAME_STATUS_END) return -2;
+    else if (ptr->info.status & GAME_STATUS_PAUSE) return 0;
 
     unsigned milliseconds = ptr->fnMillis();
     int ret = 0;
@@ -150,7 +151,7 @@ int Update(game* ptr) {
         CalcGhost(ptr);
 
         if (ActiveCollided(ptr)) {
-            s->ended = 1;
+            s->status |= GAME_STATUS_END;
             return -2; //   New tetromino already collided with something -> game over
         }
     }
@@ -163,13 +164,15 @@ int Update(game* ptr) {
 
 int ProcessInput(game* ptr, player_input input) {
     if (!ptr) return -1;
-    if (ptr->info.ended) return -2;
+    if (ptr->info.status & (GAME_STATUS_END | GAME_STATUS_PAUSE)) return -2;
 
     tetromino* act = ptr->active;
     if (!act) return 0;
 
+    // Make sure demo time starts from 0, and demo has no pauses
+    unsigned delta = ptr->info.timeStarted + ptr->info.timePaused;
     //  Add input to the demo record
-    DemoAddInstruction(ptr->demorecord, ptr->fnMillis() - ptr->info.timeStarted, (unsigned int)input);
+    DemoAddInstruction(ptr->demorecord, ptr->fnMillis() - delta, (unsigned int)input);
 
     int ret = 0;
     switch (input) {
@@ -234,7 +237,8 @@ void ResetGame(game* ptr) {
     s->rows   = 0;
     s->level  = 0;
     s->combo  = 0;
-    s->ended  = 0;
+    s->status  = 0;
+    s->timePaused = 0;
     s->rowsToNextLevel  = 2;
     s->timeStarted = ptr->fnMillis();
 
@@ -277,6 +281,32 @@ unsigned GetGameTime(game* ptr) {
     if (ptr==NULL) return 0;
 
     return ptr->fnMillis() - (ptr->info.timeStarted);
+}
+
+unsigned GameTogglePause(game* ptr) {
+    if (ptr == NULL) return 0;
+    game_info* s = &(ptr->info);
+
+    unsigned ret = 0;
+    static unsigned pauseStart = 0;
+    if (s->status & GAME_STATUS_PAUSE) {
+        //  Resume game
+        s->status &= ~GAME_STATUS_PAUSE;
+
+        //  Add pause duration to counter
+        unsigned pauseDelta = ptr->fnMillis() - pauseStart;
+        s->timePaused += pauseDelta;
+
+        //  Correct the time of next update
+        ptr->nextUpdate += pauseDelta;
+    } else if (!(s->status & GAME_STATUS_END)) {
+        //  Pause game
+        s->status |= GAME_STATUS_PAUSE;
+        pauseStart = ptr->fnMillis();
+
+        ret = 1;
+    }
+    return ret;
 }
 
 /*

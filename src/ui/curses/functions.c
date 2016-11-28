@@ -187,11 +187,20 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
 
     WINDOW* dst = wins->map;
 
-    //  First draw already set tetrominos
+    //  Take game area dimensions
     unsigned w = src->map.width;
     unsigned h = src->map.height;
-    block** mask = src->map.blockMask;
 
+    //  If game is paused don't draw blocks
+    if (src->info.status & GAME_STATUS_PAUSE) {
+        wclear(dst); // Clear game area
+        mvwprintw(dst, h/2-1, 3, "PAUSED!");
+        wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0); // Draw erased borders back
+        return;
+    }
+
+    //  First draw already set tetrominos
+    block** mask = src->map.blockMask;
     unsigned len = w*h;
     unsigned row = 1;
     wmove(dst, row, 1);

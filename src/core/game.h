@@ -1,6 +1,12 @@
 #include "game_randomisers.h"
 #include "demo.h"
 
+
+typedef enum {
+    GAME_STATUS_END = 0x01,
+    GAME_STATUS_PAUSE = 0x02
+} game_status_flags;
+
 /**
     \brief Enumerated type for different inputs which can be passed to game
 */
@@ -62,9 +68,10 @@ typedef struct {
     \brief A structure that contains game events and other info.
 */
 typedef struct {
-    int ended;    /**< Tells if game has ended */
+    unsigned status;    /**< Game status */
     unsigned timeStarted;
-    unsigned score; /**< Player scores */
+    unsigned timePaused; /** Duration of pauses */
+    unsigned score; /**< Player score */
     unsigned rows;  /**< Number of rows destroyed */
     unsigned countTetromino[SHAPE_MAX]; /**< Count of each different tetromino spawned */
 
@@ -153,3 +160,10 @@ extern void ResetGame(game* ptr);
     \return Duration in milliseconds
 */
 extern unsigned GetGameTime(game* ptr);
+
+/**
+    \brief Toggle pause
+    \param ptr Pointer to the game instance
+    \return 1 on pause
+*/
+extern unsigned GameTogglePause(game* ptr);
