@@ -1,11 +1,26 @@
-#include <stdlib.h>
+#include <stdlib.h> // malloc(), free()
+#include <string.h> // strcmp()
+#include <stdbool.h>
 #include <curses.h>
 
 #include "init.h"
 #include "functions.h"
 #include "../os/os.h"
 
+static const char* helpStr =
+"curses\n\
+   --no-color\tDisables colors in terminal\n";
+
 int CursesInit(UI_Functions* ret, int argc, char** argv) {
+    bool ena_color = true;
+
+    //  Process command line argments
+    for (int pos = 1; pos < argc; pos++) {
+        if (strcmp(argv[pos], "--no-color") == 0) {
+            ena_color = false;
+        }
+    }
+
     //  Assign all function pointers
     ret->UIGameInit = GameWindowsInit;
     ret->UIGameCleanup = GameWindowsFree;
@@ -32,11 +47,11 @@ int CursesInit(UI_Functions* ret, int argc, char** argv) {
         return -2;
     }
 
-    //  Initialize color support if available
-    if (has_colors()) {
+    //  Initialize color support if available and wanted
+    if (has_colors() && ena_color) {
         start_color();
 
-        for (short i = 1; i < 7; i++)
+        for (short i = 1; i < 8; i++)
             init_pair(i, i, 0);
     }
 
@@ -47,4 +62,8 @@ int CursesInit(UI_Functions* ret, int argc, char** argv) {
 void CursesCleanup(UI_Functions* ptr) {
     if(ptr && ptr->data) free(ptr->data);
     endwin();
+}
+
+const char* CursesGetHelp() {
+    return helpStr;
 }

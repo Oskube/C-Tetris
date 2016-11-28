@@ -14,6 +14,15 @@ typedef struct {
 } curses_game_windows;
 
 static const char symbols[7] = "0#$&8@%";
+static const char symtocolor[] = {
+    color_white,
+    color_cyan,
+    color_magenta,
+    color_yellow,
+    color_blue,
+    color_green,
+    color_red
+};
 /**
     \brief Renders the current state of the game
     \param src Pointer to the game instance
@@ -156,9 +165,11 @@ void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetromino* 
     topy += 1;
     topx += 1;
     block** blocks = tetr->blocks;
+    attron(COLOR_PAIR(symtocolor[blocks[0]->symbol]));
     for (unsigned i=0; i<4; i++) {
         mvaddch(topy+blocks[i]->y, topx+blocks[i]->x, symbols[blocks[i]->symbol]);
     }
+    attroff(COLOR_PAIR(symtocolor[blocks[0]->symbol]));
 }
 
 void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y) {
@@ -203,7 +214,9 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
     //  Two top rows are hidden so start from 2*w
     for (unsigned i = w*2; i < len; i++) {
         if (mask[i]) {
+            wattron(dst, COLOR_PAIR(symtocolor[mask[i]->symbol]));
             waddch(dst, symbols[mask[i]->symbol]);
+            wattroff(dst, COLOR_PAIR(symtocolor[mask[i]->symbol]));
         } else {
             waddch(dst, ' ');
         }
@@ -219,6 +232,8 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
         int x[4],
             y[4];
         char sym = symbols[mask[0]->symbol];
+        wattron(dst, COLOR_PAIR(symtocolor[mask[0]->symbol]));
+
         for (unsigned i = 0; i < 4; i++) {
             y[i] = mask[i]->y+1;
             x[i] = mask[i]->x+1;
@@ -240,5 +255,6 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
                 mvwaddch(dst, cy-2, x[i]+src->active->x, sym);
             }
         }
+        wattron(dst, COLOR_PAIR(symtocolor[mask[0]->symbol]));
     }
 }

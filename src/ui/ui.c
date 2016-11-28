@@ -11,10 +11,11 @@
 static char* generalHelp =
 "Usage: tetr [options]\n\
 General Options:\n \
-  --help\t\t\tDisplay this information\n \
+  --help, -h\t\t\tDisplay this information\n \
   --demo, -d <path>\t\tPlay given demo record\n \
   --randomiser, -r <name>\tSet randomiser used. Where name is 7bag, tgm or random\n \
-  --UI <UI>\t\t\tSet UI used\n";
+  --UI <UI>\t\t\tSet UI used, see below\n\n\
+UIs:\n ";
 
 int MainProgram(int argc, char** argv) {
     void* (*CurrentState)(UI_Functions*, void**);
@@ -66,17 +67,19 @@ int MainProgram(int argc, char** argv) {
                 invalidArgs = true;
             } else if (!strcmp(argv[i], "SDL")) {
                 UIInitFun = UI_SDLInit;
+            } else if (!strcmp(argv[i], "curses")) {
+                UIInitFun = CursesInit;
             } else {
                 invalidArgs = true;
             }
-        } else {
+        } else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
             invalidArgs = true;
         }
 
         //  In case of invalid arguments, print help and quit
         if (invalidArgs) {
             fprintf(stderr, "Check arguments!\n");
-            printf("%s", generalHelp);
+            printf("%s%s", generalHelp, CursesGetHelp());
             CurrentState = NULL;
             break;
         }
