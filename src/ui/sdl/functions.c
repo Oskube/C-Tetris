@@ -80,7 +80,8 @@ int UI_SDLGameRender(UI_Functions* funs, game* gme) {
 void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
-    *x = data->gameAreaWidth/data->cell->w + 2;
+    if (data->gameAreaWidth == 0) *x = 1;
+    else *x = data->gameAreaWidth/data->cell->w + 2;
     *y = 1;
 }
 
@@ -230,6 +231,10 @@ void AdjustCell(SDL_Rect* cell, unsigned winW, unsigned winH) {
     cell->y = 0;
     cell->w = winW / 80;
     cell->h = winH / 24;
+
+    //  Make sure cell can't be 0
+    if (cell->w == 0) cell->w = 1;
+    if (cell->h == 0) cell->h = 1;
 }
 
 void FreeSpriteSheet(SpriteSheet* sheet) {
