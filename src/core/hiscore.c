@@ -39,6 +39,8 @@ int ReadHiScores(const char* file, hiscore_list_entry* ptrTable, unsigned len) {
         return -1;
     }
     if (fread((void*)buffer, sizeof(char), (size_t)fLen, ptrFile) != fLen) {
+        free(buffer);
+        fclose(ptrFile);
         return -5;
     }
 

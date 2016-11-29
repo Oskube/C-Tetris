@@ -123,6 +123,8 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
         SDL_Quit();
         return -2;
     }
+    ret->data = (void*)sdldata;
+    ret->UICleanup = UI_SDLCleanUp; //  Make sure clean up function is set
 
     /*  Load all used resources, fonts, images, audio etc.*/
     //  Load font
@@ -180,7 +182,6 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     AdjustCell(sdldata->cell, winWidth, winHeight);
 
     //  Assign data
-    ret->data = (void*)sdldata;
     sdldata->window = win;
     sdldata->renderer = ren;
     sdldata->basePath = SDL_GetBasePath();
@@ -202,8 +203,6 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     ret->UIGetMillis = UI_SDLMillis;
     ret->UIGetExePath = UI_SDLGetExePath;
     ret->UIMainLoopEnd = UI_SDLMainLoopEnd;
-
-    ret->UICleanup = UI_SDLCleanUp;
 
     return 0;
 }
