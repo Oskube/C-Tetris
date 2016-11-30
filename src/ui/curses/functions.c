@@ -255,6 +255,6 @@ void DrawMap(game* src, curses_game_windows* wins, bool showghost) {
                 mvwaddch(dst, cy-2, x[i]+src->active->x, sym);
             }
         }
-        wattron(dst, COLOR_PAIR(symtocolor[mask[0]->symbol]));
+        wattroff(dst, COLOR_PAIR(symtocolor[mask[0]->symbol]));
     }
 }
