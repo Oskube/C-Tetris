@@ -9,7 +9,8 @@
 
 static const char* helpStr =
 "curses\n\
-   --no-color\tDisables colors in terminal\n";
+   --no-color\t\t\tDisables colors in terminal\n\
+   --set-symbols <str>\t\tSet tetromino symbols. default=\"0#$&8@%\"\n";
 
 int CursesInit(UI_Functions* ret, int argc, char** argv) {
     bool ena_color = true;
@@ -18,6 +19,10 @@ int CursesInit(UI_Functions* ret, int argc, char** argv) {
     for (int pos = 1; pos < argc; pos++) {
         if (strcmp(argv[pos], "--no-color") == 0) {
             ena_color = false;
+        }
+        else if (strcmp(argv[pos], "--set-symbols") == 0) {
+            if (++pos >= argc) break;
+            ChangeSymbols(argv[pos]);
         }
     }
 

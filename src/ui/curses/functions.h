@@ -88,3 +88,11 @@ extern void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetr
     \param y    Pointer where top-y is returned
 */
 extern void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y);
+
+/**
+    \brief Set tetromino symbols
+
+    Takes max 7 characters as input. If less provided remaining characters won't be changed.
+    \param newsyms String of new symbols
+*/
+extern void ChangeSymbols(char* newsyms);

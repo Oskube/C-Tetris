@@ -13,7 +13,7 @@ typedef struct {
     WINDOW* info; /**< Window for game info */
 } curses_game_windows;
 
-static const char symbols[7] = "0#$&8@%";
+static char symbols[7] = "0#$&8@%";
 static const char symtocolor[] = {
     color_white,
     color_cyan,
@@ -185,6 +185,17 @@ void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y) {
     werase(dst); // make sure info window is clean.
     wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
 }
+
+void ChangeSymbols(char* newsyms) {
+    if (!newsyms) return;
+
+    //  Copy characters to symbols table
+    for (unsigned i=0; i < 7; i++) {
+        if (newsyms[i] == '\0') break;
+        symbols[i] = newsyms[i];
+    }
+}
+
 /**
     Static functions
 **/
