@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -14,6 +15,7 @@ General Options:\n \
   --help, -h\t\t\tDisplay this information\n \
   --demo, -d <path>\t\tPlay given demo record\n \
   --randomiser, -r <name>\tSet randomiser used. Where name is 7bag, tgm or random\n \
+  --srand <seed>\t\tSet seed used by randomiser\n \
   --UI <UI>\t\t\tSet UI used, see below\n\n\
 UIs:\n ";
 
@@ -28,14 +30,12 @@ int MainProgram(int argc, char** argv) {
     //  Defines what UI is used
     UI_Functions ui = {NULL};
 
-    CurrentState = NULL;
+    CurrentState = StateGame; //  Set game state as default
     unsigned stateArgs = 0; // index of state arguments in argv
     state_game_data gameSettings = {.randomiser = RANDOMISER_TGM};
 
-    //  Game state is default
-    if (!CurrentState) {
-        CurrentState = StateGame;
-    }
+    //  Initialize random seed
+    srand((unsigned)time(NULL));
 
     //  Process command line arguments
     for (int i=1; i<argc; i++) {
@@ -71,6 +71,12 @@ int MainProgram(int argc, char** argv) {
                 UIInitFun = CursesInit;
             } else {
                 invalidArgs = true;
+            }
+        } else if (!strcmp(argv[i], "--srand")) {
+            if (argc <= ++i) {
+                invalidArgs = true;
+            } else {
+                srand(atoi(argv[i]));
             }
         } else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
             invalidArgs = true;
