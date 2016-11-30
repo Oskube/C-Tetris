@@ -30,10 +30,12 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
     }
 
     //  Process input
-    int input = funs->UIGetInput(funs);
-    switch (tolower(input)) {
-        case 'q': is_running = false; break;
-        default: break;
+    unsigned icount = funs->UIGetInput(funs); // Fill input array
+    for (unsigned iii = 0; iii < icount; iii++) { // Process all inputs
+        switch (tolower(funs->inputs[iii])) {
+            case 'q': is_running = false; break;
+            default: break;
+        }
     }
 
     //  If demo hasn't ended

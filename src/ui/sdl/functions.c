@@ -108,7 +108,8 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
         //  Return
         if (ev.type == SDL_KEYUP && ev.key.keysym.scancode == SDL_SCANCODE_RETURN) {
             inputStarted = false;
-            ret = event_ready;
+            funs->inputs[0] = event_ready;
+            ret = 1;
         }
         //  Erasing
         else if (ev.type == SDL_KEYDOWN && ev.key.keysym.scancode == SDL_SCANCODE_BACKSPACE) {
@@ -126,7 +127,12 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
         } else {
             //  Handle other events
             ret = HandleEvents(funs, &ev);
-            if (isalpha(ret)) ret = 0; // ignore controls of high score
+            if (!isalpha(ret)) {
+                funs->inputs[0] = ret;
+                ret = 1;
+            } else {
+                ret = 0;
+            }
         }
     }
 
@@ -189,11 +195,19 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
 }
 
 int UI_SDLGetInput(UI_Functions* funs) {
+    if (!funs) return 0;
+
     SDL_Event ev;
-    if (SDL_PollEvent(&ev)) {
-        return HandleEvents(funs, &ev);
+    unsigned i = 0;
+    //  Process events if any and array not full
+    while (SDL_PollEvent(&ev) && i < INPUT_ARRAY_LEN) {
+        int input = HandleEvents(funs, &ev);
+        if (input == 0) continue; // nothing interesting
+
+        funs->inputs[i] = input;
+        i++;
     }
-    return 0;
+    return i;
 }
 
 int UI_SDLGetExePath(UI_Functions* funs, char* buf, unsigned len) {

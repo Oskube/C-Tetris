@@ -124,7 +124,8 @@ int UI_CursesHiscoreGetName(UI_Functions* data, hiscore_list_entry* entry, unsig
     curs_set(0);
     clear();
 
-    return event_ready;
+    data->inputs[0] = event_ready;
+    return 1;
 }
 
 void UI_CursesTextRender(UI_Functions* data, unsigned x, unsigned y, text_color color, char* text) {
@@ -141,7 +142,9 @@ void UI_CursesTextRender(UI_Functions* data, unsigned x, unsigned y, text_color 
 }
 
 int UI_CursesGetInput(UI_Functions* funs) {
-    return getch();
+    if (!funs) return 0;
+    funs->inputs[0] = getch();
+    return 1;
 };
 
 void UI_CursesMainLoopEnd(UI_Functions* data) {

@@ -29,29 +29,32 @@ void* StateGame(UI_Functions* funs, void** data) {
 
     //  State code
     //  Read and process user input
-    int input = funs->UIGetInput(funs);
-    switch (tolower(input)) {
-        case 'w': GameProcessInput(gme, INPUT_ROTATE); break;
-        case 'a': GameProcessInput(gme, INPUT_LEFT); break;
-        case 's': GameProcessInput(gme, INPUT_DOWN); break;
-        case 'd': GameProcessInput(gme, INPUT_RIGHT); break;
-        case ' ': GameProcessInput(gme, INPUT_SET); break;
-        case 'q': is_running = false; break;
-        case 'p': GameTogglePause(gme); break;
-        case 'r': if ((gme->info.status & GAME_STATUS_END) && !alreadySaved) {
-            alreadySaved = true;
+    unsigned icount = funs->UIGetInput(funs); // Fill input array
+    for (unsigned iii = 0; iii < icount; iii++) { // Process all inputs
+        switch (tolower(funs->inputs[iii])) {
+            case 'w': GameProcessInput(gme, INPUT_ROTATE); break;
+            case 'a': GameProcessInput(gme, INPUT_LEFT); break;
+            case 's': GameProcessInput(gme, INPUT_DOWN); break;
+            case 'd': GameProcessInput(gme, INPUT_RIGHT); break;
+            case ' ': GameProcessInput(gme, INPUT_SET); break;
+            case 'q': is_running = false; break;
+            case 'p': GameTogglePause(gme); break;
+            case 'r': if ((gme->info.status & GAME_STATUS_END) && !alreadySaved) {
+                alreadySaved = true;
 
-            char* name = GenerateDemoName(funs);
-            if (!name) break;
+                char* name = GenerateDemoName(funs);
+                if (!name) break;
 
-            char text[128];
-            snprintf(text, 128, "Demo saved: %s", name);
-            funs->UITextRender(funs, 0, 0, color_red, text);
-            DemoSave(gme->demorecord, name);
-            free(name);
-        } break;
-        default: break;
+                char text[128];
+                snprintf(text, 128, "Demo saved: %s", name);
+                funs->UITextRender(funs, 0, 0, color_red, text);
+                DemoSave(gme->demorecord, name);
+                free(name);
+            } break;
+            default: break;
+        }
     }
+
 
     GameUpdate(gme);
     ShowGameInfo(funs, gme, true);

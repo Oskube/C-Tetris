@@ -5,6 +5,8 @@
 #define MAP_WIDTH  10
 #define MAP_HEIGHT 20
 
+#define INPUT_ARRAY_LEN 8
+
 #include "../core/game.h"
 #include "../core/hiscore.h"
 
@@ -45,14 +47,15 @@ typedef struct _uifun {
     void (*UITextRender)(struct _uifun*, unsigned x, unsigned y, text_color color, char* text); /**< Renders text to UI */
     void (*UITetrominoRender)(struct _uifun*, unsigned topx, unsigned topy, tetromino* tetr);   /**< Render given tetromino */
 
-    int  (*UIGetInput)(struct _uifun*);             /**< Read user input */
+    int  (*UIGetInput)(struct _uifun*);   /**< Process user input */
     unsigned (*UIGetMillis)();                      /**< Return milliseconds since start up */
-    int (*UIGetExePath)(struct _uifun*, char* buf, unsigned len);   /**< Return path to executable */
+    int (*UIGetExePath)(struct _uifun*, char* buf, unsigned len);       /**< Return path to executable */
     void (*UIMainLoopEnd)(struct _uifun*);          /**< Function called at the end of the main loop */
 
     //  Internal
     void (*UICleanup)(struct _uifun*); /**< Frees memory and closes ui */
 
+    int inputs[INPUT_ARRAY_LEN]; /** Input array filled by UIGetInput() */
     void* data; /**< Pointer to data used by rendering functions */
 } UI_Functions;
 

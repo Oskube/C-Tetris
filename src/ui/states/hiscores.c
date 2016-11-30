@@ -27,11 +27,11 @@ void* StateHiscores(UI_Functions* funs, void** data) {
     void* (*nextState)(UI_Functions*, void**);
     nextState = StateHiscores;
 
-    int input = 0;
+    int icount = 0;
     if (entry != NULL) {
         DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
-        input = funs->UIHiscoreGetName(funs, entry, 15, rank+1);
-        if (input == event_ready) {
+        icount = funs->UIHiscoreGetName(funs, entry, 15, rank+1);
+        if (icount > 0 && funs->inputs[0] == event_ready) {
             AddScoreToList(scoreTable, HISCORE_LENGTH, entry);
             SaveHiScores(path_hiscore, scoreTable, HISCORE_LENGTH);
             free(entry);
@@ -39,21 +39,22 @@ void* StateHiscores(UI_Functions* funs, void** data) {
             DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
         }
     } else {
-        input = funs->UIGetInput(funs);
+        icount = funs->UIGetInput(funs);  // Fill input array
     }
 
-    switch (tolower(input)) {
-        case 'q': {
-            is_running = false;
-            nextState = NULL;
-        } break;
-        case 'r': {
-            is_running = false;
-            nextState = StateGame;
+    for (unsigned iii = 0; iii < icount; iii++) { // Process all inputs
+        switch (tolower(funs->inputs[iii])) {
+            case 'q': {
+                is_running = false;
+                nextState = NULL;
+            } break;
+            case 'r': {
+                is_running = false;
+                nextState = StateGame;
+            }
+            case event_req_refresh: DrawHiscores(funs, scoreTable, HISCORE_LENGTH); break;
+            default: break;
         }
-        case event_req_refresh: DrawHiscores(funs, scoreTable, HISCORE_LENGTH); break;
-
-        default: break;
     }
 
     if (!is_running) CleanUp();
