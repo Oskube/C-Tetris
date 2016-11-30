@@ -31,7 +31,7 @@ static const char symtocolor[] = {
 */
 static void DrawMap(game* src, curses_game_windows* wins, bool showghost);
 
-int GameWindowsInit(UI_Functions* data) {
+int UI_CursesGameInit(UI_Functions* data) {
     if (!data) return -1;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* win = cdata->win;
@@ -71,7 +71,7 @@ int GameWindowsInit(UI_Functions* data) {
     return 0;
 }
 
-void GameWindowsFree(UI_Functions* data) {
+void UI_CursesGameCleanup(UI_Functions* data) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
 
@@ -89,7 +89,7 @@ void GameWindowsFree(UI_Functions* data) {
     cdata->additional = NULL;
 }
 
-int GameRender(UI_Functions* data, game* gme) {
+int UI_CursesGameRender(UI_Functions* data, game* gme) {
     if (!data) return -1;
     curses_data* cdata = (curses_data*)data->data;
 
@@ -100,11 +100,11 @@ int GameRender(UI_Functions* data, game* gme) {
     return 0;
 }
 
-void DrawHiscoresBegin(UI_Functions* data) {
+void UI_CursesHiscoreRenderBegin(UI_Functions* data) {
     clear();
 }
 
-int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
+int UI_CursesHiscoreGetName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank) {
     if (!data) return 0;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
@@ -127,7 +127,7 @@ int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned ma
     return event_ready;
 }
 
-void DrawText(UI_Functions* data, unsigned x, unsigned y, text_color color, char* text) {
+void UI_CursesTextRender(UI_Functions* data, unsigned x, unsigned y, text_color color, char* text) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* dst = cdata->win;
@@ -140,11 +140,11 @@ void DrawText(UI_Functions* data, unsigned x, unsigned y, text_color color, char
     }
 }
 
-int ReadKey(UI_Functions* funs) {
+int UI_CursesGetInput(UI_Functions* funs) {
     return getch();
 };
 
-void LoopEnd(UI_Functions* data) {
+void UI_CursesMainLoopEnd(UI_Functions* data) {
     if (!data) return;
     curses_data* cdata = (curses_data*)data->data;
     WINDOW* win = cdata->win;
@@ -154,11 +154,11 @@ void LoopEnd(UI_Functions* data) {
     SleepMs(2);
 }
 
-int GetExePath(UI_Functions* data, char* buf, unsigned len) {
+int UI_CursesGetExePath(UI_Functions* data, char* buf, unsigned len) {
     return GetExecutablePath(buf, len);
 }
 
-void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetromino* tetr) {
+void UI_CursesTetrominoRender(UI_Functions* data, unsigned topx, unsigned topy, tetromino* tetr) {
     if (tetr == NULL) return;
 
     // Block locations are relative to tetromino's center
@@ -172,7 +172,7 @@ void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetromino* 
     attroff(COLOR_PAIR(symtocolor[blocks[0]->symbol]));
 }
 
-void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y) {
+void UI_CursesBeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y) {
     if (!data) return;
 
     curses_data* cdata = (curses_data*)data->data;

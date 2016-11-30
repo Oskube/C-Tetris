@@ -14,20 +14,20 @@ typedef struct {
     \param data Pointer to data used
     \return 0 on success
 */
-extern int GameWindowsInit(UI_Functions* data);
+extern int UI_CursesGameInit(UI_Functions* data);
 
 /**
     \brief Deletes created windows
     \param data Pointer to data used
 */
-extern void GameWindowsFree(UI_Functions* data);
+extern void UI_CursesGameCleanup(UI_Functions* data);
 
 /**
     \brief Updates game and renders it
     \param data Pointer to data used
     \param gme Pointer to the game instance used
 */
-extern int GameRender(UI_Functions* data, game* gme);
+extern int UI_CursesGameRender(UI_Functions* data, game* gme);
 
 /**
     \brief Draw high score table
@@ -36,7 +36,7 @@ extern int GameRender(UI_Functions* data, game* gme);
     \param list Pointer to high score table data
     \param len Lenght of high score array
 */
-extern void DrawHiscoresBegin(UI_Functions* data);
+extern void UI_CursesHiscoreRenderBegin(UI_Functions* data);
 
 /**
     \brief Asks user name for high score table
@@ -44,7 +44,7 @@ extern void DrawHiscoresBegin(UI_Functions* data);
     \param entry Pointer to high score entry
     \param rank Ranking of the new entry
 */
-extern int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
+extern int UI_CursesHiscoreGetName(UI_Functions* data, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
 
 /**
     \brief Draw given text to given position
@@ -53,19 +53,19 @@ extern int GetNewHiscoreName(UI_Functions* data, hiscore_list_entry* entry, unsi
     \param y row
     \param text Pointer to the text string
 */
-extern void DrawText(UI_Functions* data, unsigned x, unsigned y, text_color color, char* text);
+extern void UI_CursesTextRender(UI_Functions* data, unsigned x, unsigned y, text_color color, char* text);
 
 /**
     \brief Read keyboard
     \return Pressed key
 */
-extern int ReadKey(UI_Functions* funs);
+extern int UI_CursesGetInput(UI_Functions* funs);
 
 /**
     \brief Sleeps for a while
     \param data Pointer to data used
 */
-extern void LoopEnd(UI_Functions* data);
+extern void UI_CursesMainLoopEnd(UI_Functions* data);
 
 /**
     \brief Get executable path
@@ -74,12 +74,12 @@ extern void LoopEnd(UI_Functions* data);
     \param len Maximum bytes copied
     \return Ammount of bytes copied
 */
-extern int GetExePath(UI_Functions* data, char* buf, unsigned len);
+extern int UI_CursesGetExePath(UI_Functions* data, char* buf, unsigned len);
 
 /**
     \brief Draw tetromino
 */
-extern void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetromino* tetr);
+extern void UI_CursesTetrominoRender(UI_Functions* data, unsigned topx, unsigned topy, tetromino* tetr);
 
 /**
     \brief Init info area and returns position
@@ -87,7 +87,7 @@ extern void DrawTetromino(UI_Functions* data, unsigned topx, unsigned topy, tetr
     \param x    Pointer where top-x is returned
     \param y    Pointer where top-y is returned
 */
-extern void BeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y);
+extern void UI_CursesBeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y);
 
 /**
     \brief Set tetromino symbols

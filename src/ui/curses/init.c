@@ -27,20 +27,20 @@ int CursesInit(UI_Functions* ret, int argc, char** argv) {
     }
 
     //  Assign all function pointers
-    ret->UIGameInit = GameWindowsInit;
-    ret->UIGameCleanup = GameWindowsFree;
-    ret->UIGameRender = GameRender;
-    ret->UIBeginGameInfo = BeginGameInfo;
+    ret->UIGameInit = UI_CursesGameInit;
+    ret->UIGameCleanup = UI_CursesGameCleanup;
+    ret->UIGameRender = UI_CursesGameRender;
+    ret->UIBeginGameInfo = UI_CursesBeginGameInfo;
 
-    ret->UIHiscoreRenderBegin = DrawHiscoresBegin;
-    ret->UIHiscoreGetName = GetNewHiscoreName;
+    ret->UIHiscoreRenderBegin = UI_CursesHiscoreRenderBegin;
+    ret->UIHiscoreGetName = UI_CursesHiscoreGetName;
 
-    ret->UITextRender = DrawText;
-    ret->UITetrominoRender = DrawTetromino;
-    ret->UIGetInput = ReadKey;
+    ret->UITextRender = UI_CursesTextRender;
+    ret->UITetrominoRender = UI_CursesTetrominoRender;
+    ret->UIGetInput = UI_CursesGetInput;
     ret->UIGetMillis = GetTime;
-    ret->UIGetExePath = GetExePath;
-    ret->UIMainLoopEnd = LoopEnd;
+    ret->UIGetExePath = UI_CursesGetExePath;
+    ret->UIMainLoopEnd = UI_CursesMainLoopEnd;
 
     ret->UICleanup = CursesCleanup;
 
