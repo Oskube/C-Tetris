@@ -28,6 +28,9 @@ static int sym_colors[] = {
     3, 6, 5, 9, 4, 2, 1
 };
 
+static unsigned movementKeys = 0; /** Bitmask to save movement key states for eliminating repeat delay */
+
+//  Static function declarations -------------
 static void DrawTetromino(SDL_Renderer* ren, SDL_Rect* cel, SpriteSheet* texture, tetromino* tetr, int offset_x, int offset_y, bool ignorearea);
 static int HandleEvents(UI_Functions* funs, SDL_Event* ev);
 
@@ -97,7 +100,6 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
     char msg[128] = {0};
     snprintf(msg, 128, "NEW HISCORE, %d. PLACE.", rank);
 
-    static bool inputStarted = false;   //  Ignore garbage from previous events, like 'q' from escaping the game state
     SDL_StartTextInput();
     SDL_Event ev;
 
@@ -107,7 +109,6 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
     if (SDL_PollEvent(&ev)) {
         //  Return
         if (ev.type == SDL_KEYUP && ev.key.keysym.scancode == SDL_SCANCODE_RETURN) {
-            inputStarted = false;
             funs->inputs[0] = event_ready;
             ret = 1;
         }
@@ -120,10 +121,9 @@ int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned
         }
         else if (ev.type == SDL_TEXTINPUT) {
             //  Append text input
-            if (strlen(entry->name) < maxlen && inputStarted) {
+            if (strlen(entry->name) < maxlen) {
                 strncat(entry->name, ev.text.text, 1);
             }
-            inputStarted = true;
         } else {
             //  Handle other events
             ret = HandleEvents(funs, &ev);
@@ -196,18 +196,47 @@ void UI_SDLTetrominoRender(UI_Functions* funs, unsigned topx, unsigned topy, tet
 
 int UI_SDLGetInput(UI_Functions* funs) {
     if (!funs) return 0;
+    unsigned old_movementKeys = movementKeys;
 
     SDL_Event ev;
-    unsigned i = 0;
+    unsigned count = 0;
     //  Process events if any and array not full
-    while (SDL_PollEvent(&ev) && i < INPUT_ARRAY_LEN) {
+    while (SDL_PollEvent(&ev) && count < INPUT_ARRAY_LEN) {
         int input = HandleEvents(funs, &ev);
         if (input == 0) continue; // nothing interesting
 
-        funs->inputs[i] = input;
-        i++;
+        funs->inputs[count] = input;
+        count++;
     }
-    return i;
+
+    static unsigned next;
+    //  If movement keys are down add them, "wasd"-keys
+    if (movementKeys) {
+        bool getInput = false;
+
+        ui_sdl_data* data = funs->data;
+        if (old_movementKeys < movementKeys) {
+            // More keys down than last time, next repeat is t+DAS
+            next = SDL_GetTicks() + data->das;
+            getInput = true;
+        } else if (next < SDL_GetTicks()) {
+            // Next repeat is t+ARR
+            next = SDL_GetTicks() + data->arr;
+            getInput = true;
+        }
+
+        if (getInput) {
+            for(unsigned pos = 0; pos < movementKeys && count < INPUT_ARRAY_LEN; pos++) {
+                char keytocmd[] = "adsw";
+                if (movementKeys & (1 << pos)) {
+                    funs->inputs[count] = keytocmd[pos];
+                    count++;
+                }
+            }
+        }
+    }
+
+    return count;
 }
 
 int UI_SDLGetExePath(UI_Functions* funs, char* buf, unsigned len) {
@@ -369,16 +398,36 @@ int HandleEvents(UI_Functions* funs, SDL_Event* ev) {
         case SDL_QUIT: return 'q';
         case SDL_KEYDOWN: {
             switch (ev->key.keysym.scancode) {
-                case SDL_SCANCODE_SPACE: return ' ';
+                case SDL_SCANCODE_SPACE: return ' '; break;
                 default: {
                     const char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
                     //   All letters and numbers (excluding numpad-nums)
                     if (strlen(key) == 1) {
                         // printf("Button down: %c\n", key[0]);
+                        switch (key[0]) {
+                            case 'W': movementKeys |= 1 << INPUT_ROTATE; return 0;
+                            case 'A': movementKeys |= 1 << INPUT_LEFT; return 0;
+                            case 'S': movementKeys |= 1 << INPUT_DOWN; return 0;
+                            case 'D': movementKeys |= 1 << INPUT_RIGHT; return 0;
+                        }
                         return key[0];
                     }
                 } break;
             }
+        } break;
+        case SDL_KEYUP: {
+            const char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
+            //   All letters and numbers (excluding numpad-nums)
+            if (strlen(key) == 1) {
+                // printf("Button down: %c\n", key[0]);
+                switch (key[0]) {
+                    case 'W': movementKeys &= ~(1 << INPUT_ROTATE); break;
+                    case 'A': movementKeys &= ~(1 << INPUT_LEFT); break;
+                    case 'S': movementKeys &= ~(1 << INPUT_DOWN); break;
+                    case 'D': movementKeys &= ~(1 << INPUT_RIGHT); break;
+                }
+            }
+            // printf("Button up: %c\n", key[0]);
         } break;
         case SDL_WINDOWEVENT: {
             if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {

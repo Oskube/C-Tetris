@@ -27,7 +27,7 @@ void* StateHiscores(UI_Functions* funs, void** data) {
     void* (*nextState)(UI_Functions*, void**);
     nextState = StateHiscores;
 
-    int icount = 0;
+    unsigned icount = 0;
     if (entry != NULL) {
         DrawHiscores(funs, scoreTable, HISCORE_LENGTH);
         icount = funs->UIHiscoreGetName(funs, entry, 15, rank+1);

@@ -20,6 +20,10 @@ typedef struct {
     SDL_Rect* cell; /**< Size of a rendered character */
     unsigned gameAreaWidth; /**< Width of game area in pixels */
 
+    //  DAS and ARR
+    unsigned das; /**< Autorepeat start delay */
+    unsigned arr; /**< Autorepeat rate */
+
     //  Game sprites
     SpriteSheet* borders;
     SpriteSheet* blocks;

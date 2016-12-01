@@ -58,11 +58,26 @@ static SpriteSheet* GenerateSheet(SDL_Texture* texture, SDL_Rect* clips, unsigne
 static const char* CmdLineHelpStr =
 " SDL\n\
    --no-textures\t\tDisables texture loading, except for font\n\
-   --width <w>, --height <h>\tSet window size\n";
+   --width <w>, --height <h>\tSet window size\n\
+   --das <delay-ms>\t\tAuto repeat start delay. default=100\n\
+   --arr <delay-ms>\t\tAuto repeat rate delay. default=50\n";
 
 int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     bool ena_textures = true;
     int winWidth = WIN_DEF_W, winHeight = WIN_DEF_H;
+
+    //  Set data pointer
+    ui_sdl_data* sdldata = (ui_sdl_data*)malloc(sizeof(ui_sdl_data));
+    if (!sdldata) {
+        fprintf(stderr, "Could not create data container.\n");
+        return -2;
+    }
+    ret->data = (void*)sdldata;
+    ret->UICleanup = UI_SDLCleanUp; //  Make sure clean up function is set
+
+    //  Default settings
+    sdldata->das = 100;
+    sdldata->arr = 50;
 
     //  Process command line arguments
     for (int pos = 1; pos < argc; pos++) {
@@ -78,6 +93,18 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
             if (++pos >= argc) continue; // ignore if no value
             winHeight = atoi(argv[pos]);
             if (winHeight < 10) winHeight = 10;
+        }
+        else if (strcmp(argv[pos], "--das") == 0) {
+            if (++pos >= argc) continue; // ignore if no value
+            int temp = atoi(argv[pos]);
+            if (temp < 0) temp = 0;
+            sdldata->das = temp;
+        }
+        else if (strcmp(argv[pos], "--arr") == 0) {
+            if (++pos >= argc) continue; // ignore if no value
+            int temp = atoi(argv[pos]);
+            if (temp < 0) temp = 0;
+            sdldata->arr = temp;
         }
     }
 
@@ -113,18 +140,6 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
         return -2;
     }
     SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-
-    //  Set data pointer
-    ui_sdl_data* sdldata = (ui_sdl_data*)malloc(sizeof(ui_sdl_data));
-    if (!sdldata) {
-        fprintf(stderr, "Could not create data container.\n");
-        SDL_DestroyRenderer(ren);
-        SDL_DestroyWindow(win);
-        SDL_Quit();
-        return -2;
-    }
-    ret->data = (void*)sdldata;
-    ret->UICleanup = UI_SDLCleanUp; //  Make sure clean up function is set
 
     /*  Load all used resources, fonts, images, audio etc.*/
     //  Load font
