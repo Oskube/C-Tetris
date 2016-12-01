@@ -99,6 +99,11 @@ int GameUpdate(game* ptr) {
     //  Check if the timer has expired.
     if (ptr->nextUpdate - milliseconds <= ptr->step) return ret;
 
+    //  Record Update to demo recording
+    unsigned delta = ptr->info.timeStarted + ptr->info.timePaused;
+    //  Add input to the demo record
+    DemoAddInstruction(ptr->demorecord, ptr->fnMillis() - delta, (unsigned int)INPUT_UPDATE);
+
     //  Check if active tetromino hit bottom or tetromino below.
     if (TetrominoMove(ptr, INPUT_DOWN)) {
         int origoy = ptr->active->y;

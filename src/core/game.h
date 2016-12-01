@@ -15,7 +15,8 @@ typedef enum {
     INPUT_RIGHT,
     INPUT_DOWN,     /**< Same as calling Update() */
     INPUT_ROTATE,   /**< Rotate clockwise */
-    INPUT_SET       /**< Hard drop */
+    INPUT_SET,      /**< Hard drop */
+    INPUT_UPDATE    /**< For demo recording purposes! */
 } player_input;
 
 /**
@@ -99,6 +100,7 @@ typedef struct {
     unsigned step; /**< Time step between updates */
     unsigned (*fnMillis)(); /**< Function used to get current time in milliseconds */
 
+    unsigned recording;
     demo* demorecord;
 } game;
 
