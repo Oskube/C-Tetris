@@ -9,8 +9,8 @@
 #include "functions.h"
 
 #define WIN_TITLE "CTetris"
-#define WIN_DEF_W 800
-#define WIN_DEF_H 600
+#define WIN_DEF_W 1024
+#define WIN_DEF_H 768
 
 /**
     \brief Load given image to SDL_Texture

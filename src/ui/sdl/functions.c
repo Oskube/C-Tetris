@@ -15,7 +15,7 @@ static Color sdl_colors[] = {
     {.r = 255, .g = 0, .b = 255 },  // 5, magenta
     {.r = 0, .g = 255, .b = 255 },  // 6, cyan
     {.r = 255, .g = 255, .b = 255 },// 7, white
-    {.r = 0, .g = 0, .b = 0},       // 8, default, should be something different than background
+    {.r = 255, .g = 255, .b = 255}, // 8, default, should be something different than background
     //  Keep first 9 in this order, used in text rendering, same for all UIs
 
     {.r = 255, .g = 96, .b = 0 },   // 9, orange
@@ -92,6 +92,7 @@ void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     //  Make sure screen is clear
+    SDL_SetRenderDrawColor(data->renderer, 64, 64, 64, 255);
     SDL_RenderClear(data->renderer);
 }
 
@@ -259,7 +260,7 @@ void UI_SDLMainLoopEnd(UI_Functions* funs) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 
     SDL_RenderPresent(data->renderer);
-    SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(data->renderer, 64, 64, 64, 255);
     if (data->clearScreen) {
         SDL_RenderClear(data->renderer);
         data->clearScreen = false;
