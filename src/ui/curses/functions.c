@@ -143,7 +143,19 @@ void UI_CursesTextRender(UI_Functions* data, unsigned x, unsigned y, text_color 
 
 int UI_CursesGetInput(UI_Functions* funs) {
     if (!funs) return 0;
-    funs->inputs[0] = getch();
+    int in = getch();
+    switch (in) {   // Interpret 'hjkl' and arrowkeys to 'wasd'
+        case 'k':
+        case KEY_UP: in = 'w'; break;
+        case 'h':
+        case KEY_LEFT: in = 'a'; break;
+        case 'j':
+        case KEY_DOWN: in = 's'; break;
+        case 'l':
+        case KEY_RIGHT: in = 'd'; break;
+    }
+
+    funs->inputs[0] = in;
     return 1;
 };
 

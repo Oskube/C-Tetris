@@ -400,35 +400,40 @@ int HandleEvents(UI_Functions* funs, SDL_Event* ev) {
         case SDL_KEYDOWN: {
             switch (ev->key.keysym.scancode) {
                 case SDL_SCANCODE_SPACE: return ' '; break;
+
+                //  Movement
+                case SDL_SCANCODE_UP:
+                case SDL_SCANCODE_W: movementKeys |= 1 << INPUT_ROTATE; return 0;
+                case SDL_SCANCODE_LEFT:
+                case SDL_SCANCODE_A: movementKeys |= 1 << INPUT_LEFT; return 0;
+                case SDL_SCANCODE_DOWN:
+                case SDL_SCANCODE_S: movementKeys |= 1 << INPUT_DOWN; return 0;
+                case SDL_SCANCODE_RIGHT:
+                case SDL_SCANCODE_D: movementKeys |= 1 << INPUT_RIGHT; return 0;
+
                 default: {
                     const char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
                     //   All letters and numbers (excluding numpad-nums)
                     if (strlen(key) == 1) {
                         // printf("Button down: %c\n", key[0]);
-                        switch (key[0]) {
-                            case 'W': movementKeys |= 1 << INPUT_ROTATE; return 0;
-                            case 'A': movementKeys |= 1 << INPUT_LEFT; return 0;
-                            case 'S': movementKeys |= 1 << INPUT_DOWN; return 0;
-                            case 'D': movementKeys |= 1 << INPUT_RIGHT; return 0;
-                        }
                         return key[0];
                     }
                 } break;
             }
         } break;
         case SDL_KEYUP: {
-            const char* key = SDL_GetKeyName(SDL_GetKeyFromScancode(ev->key.keysym.scancode));
-            //   All letters and numbers (excluding numpad-nums)
-            if (strlen(key) == 1) {
-                // printf("Button down: %c\n", key[0]);
-                switch (key[0]) {
-                    case 'W': movementKeys &= ~(1 << INPUT_ROTATE); break;
-                    case 'A': movementKeys &= ~(1 << INPUT_LEFT); break;
-                    case 'S': movementKeys &= ~(1 << INPUT_DOWN); break;
-                    case 'D': movementKeys &= ~(1 << INPUT_RIGHT); break;
-                }
+            switch (ev->key.keysym.scancode) {
+                //  Movement
+                case SDL_SCANCODE_UP:
+                case SDL_SCANCODE_W: movementKeys &= ~(1 << INPUT_ROTATE); break;
+                case SDL_SCANCODE_LEFT:
+                case SDL_SCANCODE_A: movementKeys &= ~(1 << INPUT_LEFT); break;
+                case SDL_SCANCODE_DOWN:
+                case SDL_SCANCODE_S: movementKeys &= ~(1 << INPUT_DOWN); break;
+                case SDL_SCANCODE_RIGHT:
+                case SDL_SCANCODE_D: movementKeys &= ~(1 << INPUT_RIGHT); break;
+                default: break;
             }
-            // printf("Button up: %c\n", key[0]);
         } break;
         case SDL_WINDOWEVENT: {
             if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
