@@ -19,6 +19,8 @@ static game* gme = NULL;
 static bool alreadySaved = false;
 static state_game_data settings = {0}; /* Game settings, stays same until changed */
 
+static char textDemo[128] = {0}; //  Demo saved text
+
 //  State code
 void* StateGame(UI_Functions* funs, void** data) {
     //  State init
@@ -45,9 +47,8 @@ void* StateGame(UI_Functions* funs, void** data) {
                 char* name = GenerateDemoName(funs);
                 if (!name) break;
 
-                char text[128];
-                snprintf(text, 128, "Demo saved: %s", name);
-                funs->UITextRender(funs, 0, 0, color_red, text);
+                snprintf(textDemo, 128, "Demo saved: %s", name);
+
                 DemoSave(gme->demorecord, name);
                 free(name);
             } break;
@@ -55,6 +56,8 @@ void* StateGame(UI_Functions* funs, void** data) {
         }
     }
 
+    //  Print msg if is demo saved
+    if (textDemo[0] != '\0') funs->UITextRender(funs, 0, 0, color_red, textDemo);
 
     GameUpdate(gme);
     ShowGameInfo(funs, gme, true);
