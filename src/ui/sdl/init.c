@@ -209,6 +209,8 @@ int UI_SDLInit(UI_Functions* ret, int argc, char** argv) {
     ret->UIGameRender = UI_SDLGameRender;
     ret->UIBeginGameInfo = UI_SDLBeginGameInfo;
 
+    ret->UIDemoShowPressed = UI_SDLDemoShowPressed;
+
     ret->UIHiscoreRenderBegin = UI_SDLHiscoreRenderBegin;
     ret->UIHiscoreGetName = UI_SDLHiscoreGetName;
 

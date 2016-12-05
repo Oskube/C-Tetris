@@ -88,6 +88,53 @@ void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y) {
     *y = 1;
 }
 
+void UI_SDLDemoShowPressed(UI_Functions* funs, unsigned topx, unsigned topy, demo_instruction* instruction) {
+    ui_sdl_data* data = (ui_sdl_data*)funs->data;
+
+    unsigned ticks = SDL_GetTicks();
+    static unsigned pressed[INPUT_SET+1] = {0}; // left, right, down, rotate, set
+    if (instruction) {
+        unsigned instr = instruction->instruction;
+        if (instr <= INPUT_SET) {
+            pressed[instr] = ticks;
+        }
+    }
+
+    //  Draw keys
+    unsigned cell = data->cell->h * 2;
+    SDL_Rect target = {.x = topx*data->cell->w, .y = topy*data->cell->h, .w = cell, .h = cell};
+    for(unsigned i=0; i <= INPUT_SET; i++) {
+        switch (i) {
+            case INPUT_LEFT: {
+                target.y += cell;
+            } break;
+            case INPUT_RIGHT: {
+                target.x += cell*2;
+            } break;
+            case INPUT_DOWN: {
+                target.x -= cell;
+            } break;
+            case INPUT_ROTATE: {
+                target.y -= cell;
+            } break;
+            case INPUT_SET: {
+                target.x += cell*3;
+                target.y += cell;
+            } break;
+            default: break;
+        }
+
+        int delta = pressed[i] + 128 - ticks;
+        SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, 255);
+        SDL_RenderDrawRect(data->renderer, &target);
+
+        if (delta > 0) {
+            SDL_SetRenderDrawColor(data->renderer, 255, 255, 255, delta << 1);
+            SDL_RenderFillRect(data->renderer, &target);
+        }
+    }
+}
+
 void UI_SDLHiscoreRenderBegin(UI_Functions* funs) {
     ui_sdl_data* data = (ui_sdl_data*)funs->data;
 

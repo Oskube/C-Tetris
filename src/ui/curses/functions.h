@@ -90,6 +90,15 @@ extern void UI_CursesTetrominoRender(UI_Functions* data, unsigned topx, unsigned
 extern void UI_CursesBeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y);
 
 /**
+    \brief Show pressed keys
+    \param data Pointer to data
+    \param topx Coordinate of left border
+    \param topy Coordinate of top border
+    \param instruction Current demo instructions
+*/
+extern void UI_CursesDemoShowPressed(UI_Functions* data, unsigned topx, unsigned topy, demo_instruction* instruction);
+
+/**
     \brief Set tetromino symbols
 
     Takes max 7 characters as input. If less provided remaining characters won't be changed.

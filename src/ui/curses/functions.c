@@ -201,6 +201,36 @@ void UI_CursesBeginGameInfo(UI_Functions* data, unsigned* x, unsigned* y) {
     wborder(dst, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
+void UI_CursesDemoShowPressed(UI_Functions* data, unsigned topx, unsigned topy, demo_instruction* instruction) {
+    static unsigned instr = 0xff;
+    static unsigned time = 0;
+    if (instruction) {
+        instr = instruction->instruction;
+        time = 0x40;
+    }
+    if (time > 0) {
+        time--;
+        switch (instr) {
+            case INPUT_LEFT: {
+                mvaddch(topy+1, topx, '<');
+            } break;
+            case INPUT_RIGHT: {
+                mvaddch(topy+1, topx+2, '>');
+            } break;
+            case INPUT_DOWN: {
+                mvaddch(topy+1, topx+1, 'v');
+            } break;
+            case INPUT_ROTATE: {
+                mvaddch(topy, topx+1, 'A');
+            } break;
+            case INPUT_SET: {
+                mvaddch(topy+1, topx+3, 'S');
+            } break;
+            default: break;
+        }
+    }
+}
+
 void ChangeSymbols(char* newsyms) {
     if (!newsyms) return;
 

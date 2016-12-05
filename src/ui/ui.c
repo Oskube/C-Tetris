@@ -14,6 +14,7 @@ static char* generalHelp =
 General Options:\n \
   --help, -h\t\t\tDisplay this information\n \
   --demo, -d <path>\t\tPlay given demo record\n \
+  --showkeys <0|1>\t\tShow pressed keys during demo playback\n \
   --randomiser, -r <name>\tSet randomiser used. Where name is 7bag, tgm or random\n \
   --srand <seed>\t\tSet seed used by randomiser\n \
   --UI <UI>\t\t\tSet UI used, see below\n\n\
@@ -33,6 +34,7 @@ int MainProgram(int argc, char** argv) {
     CurrentState = StateGame; //  Set game state as default
     unsigned stateArgs = 0; // index of state arguments in argv
     state_game_data gameSettings = {.randomiser = RANDOMISER_TGM};
+    state_demo_data demoSettings = {.path = NULL, .showKeys = true};
 
     //  Initialize random seed
     srand((unsigned)time(NULL));
@@ -46,6 +48,14 @@ int MainProgram(int argc, char** argv) {
             } else {
                 stateArgs = i; //  Save the argument index of demo path
                 CurrentState = StatePlayDemo; // Set state to PlayDemo
+            }
+        }
+        else if (!strcmp(argv[i], "--showkeys")) {
+            if (argc <= ++i) {
+                invalidArgs = true;
+            } else {
+                if(atoi(argv[i]) > 0) demoSettings.showKeys = true;
+                else demoSettings.showKeys = false;
             }
         }
         else if (!strcmp(argv[i], "--randomiser") || !strcmp(argv[i], "-r")) {
@@ -101,8 +111,14 @@ int MainProgram(int argc, char** argv) {
     } else if (CurrentState == StatePlayDemo) {
         //  Allocate memory and copy demo path
         size_t len = strlen(argv[stateArgs]);
-        *data = malloc(sizeof(char)*len+1);
-        strcpy((char*)*data, argv[stateArgs]);
+        char* str = (char*)malloc(sizeof(char)*len+1);
+        strcpy(str, argv[stateArgs]);
+
+        //  Malloc settings struct
+        state_demo_data* set = (state_demo_data*)malloc(sizeof(state_demo_data));
+        set->path = str;
+        set->showKeys = demoSettings.showKeys;
+        *data = (void*)set;
     }
 
     //  Default UI is curses

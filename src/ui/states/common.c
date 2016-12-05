@@ -2,12 +2,14 @@
 
 #include "common.h"
 
-void ShowGameInfo(UI_Functions* funs, game* gme, unsigned showNext) {
+void ShowGameInfo(UI_Functions* funs, game* gme, unsigned showNext, unsigned* out_topx, unsigned* out_topy) {
     game_info* s = &(gme->info);
     char temp[256] = {0};
 
     unsigned topx = 0, topy = 0;
     funs->UIBeginGameInfo(funs, &topx, &topy);
+    if (out_topx) *out_topx = topx;
+    if (out_topy) *out_topy = topy;
 
     // Scores
     snprintf(temp, 256, "Level: %d (%d)", s->level, s->rowsToNextLevel);

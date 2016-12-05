@@ -42,6 +42,8 @@ extern void UI_SDLGameCleanUp(UI_Functions* funs);
 extern int  UI_SDLGameRender(UI_Functions* funs, game* gme);
 extern void UI_SDLBeginGameInfo(UI_Functions* funs, unsigned* x, unsigned* y);
 
+extern void UI_SDLDemoShowPressed(UI_Functions* funs, unsigned topx, unsigned topy, demo_instruction* instruction);
+
 extern void UI_SDLHiscoreRenderBegin(UI_Functions* funs);
 extern int UI_SDLHiscoreGetName(UI_Functions* funs, hiscore_list_entry* entry, unsigned maxlen, unsigned rank);
 

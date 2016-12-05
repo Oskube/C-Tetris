@@ -60,7 +60,7 @@ void* StateGame(UI_Functions* funs, void** data) {
     if (textDemo[0] != '\0') funs->UITextRender(funs, 0, 0, color_red, textDemo);
 
     GameUpdate(gme);
-    ShowGameInfo(funs, gme, true);
+    ShowGameInfo(funs, gme, true, NULL, NULL);
     funs->UIGameRender(funs, gme);
 
     //  If quit requested

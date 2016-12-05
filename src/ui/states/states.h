@@ -12,6 +12,11 @@ typedef struct {
     unsigned randomiser;
 } state_game_data;
 
+typedef struct {
+    char* path;
+    bool  showKeys;
+} state_demo_data;
+
 /**
     \brief State function which handles gameplay
 

@@ -31,6 +31,7 @@ static unsigned timeLast = 0;
 static float timeDemo = 0;
 static float timeScale = 1; /* Used in fast forwarding */
 
+static bool showKeys = true;
 static char infoName[INFO_LEN];
 static char infoInstr[INFO_LEN];
 static char infoTScal[INFO_LEN]; // time scale
@@ -70,14 +71,16 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
         snprintf(infoTScal, INFO_LEN, "Time scale: PAUSED");
     }
 
+    static unsigned infox = 0, infoy = 0;
+
+    demo_instruction* inst = NULL;
     //  If demo hasn't ended
     if (demoPosition) {
-        // unsigned demoTime = funs->UIGetMillis() - start;  //  Calculate playback time
         unsigned timeDelta = funs->UIGetMillis() - timeLast;  //  Calculate playback time
         timeLast = funs->UIGetMillis();
         timeDemo += timeScale*timeDelta;
 
-        demo_instruction* inst = (demo_instruction*)demoPosition->value; // Get current instruction
+        inst = (demo_instruction*)demoPosition->value; // Get current instruction
 
         //  Process instructions until we have to wait for the next one
         while (inst->time < timeDemo) {
@@ -87,6 +90,7 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
                 gme->nextUpdate = 0;
                 GameUpdate(gme);
             } else {
+                if (showKeys) funs->UIDemoShowPressed(funs, infox+20, infoy+12, inst);
                 GameProcessInput(gme, (player_input)inst->instruction);
             }
 
@@ -106,10 +110,13 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
     }
 
     // Renderings
-    ShowGameInfo(funs, gme, true);
-    funs->UITextRender(funs, 30, 18, color_red, infoName);
-    funs->UITextRender(funs, 30, 19, color_red, infoInstr);
-    funs->UITextRender(funs, 30, 20, color_red, infoTScal);
+    ShowGameInfo(funs, gme, true, &infox, &infoy);
+
+    if (showKeys) funs->UIDemoShowPressed(funs, infox+20, infoy+12, NULL); // Render empty grid if nothing happens
+
+    funs->UITextRender(funs, infox, infoy+17, color_red, infoName);
+    funs->UITextRender(funs, infox, infoy+18, color_red, infoInstr);
+    funs->UITextRender(funs, infox, infoy+19, color_red, infoTScal);
     funs->UIGameRender(funs, gme);
 
     //  If quit requested
@@ -122,9 +129,15 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
 
 int StateInit(UI_Functions* funs, void** data) {
     if (!data) return -1;
-    demoPath = *data;
-    *data = NULL;
+
+    //  Get demo path
+    state_demo_data* settings = *data;
+    demoPath = settings->path;
     if (!demoPath) return -2;
+
+    showKeys = settings->showKeys;
+    free(*data);
+    *data = NULL;
 
     if (funs->UIGameInit(funs)) {
         return -2;

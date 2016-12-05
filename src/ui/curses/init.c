@@ -32,6 +32,8 @@ int CursesInit(UI_Functions* ret, int argc, char** argv) {
     ret->UIGameRender = UI_CursesGameRender;
     ret->UIBeginGameInfo = UI_CursesBeginGameInfo;
 
+    ret->UIDemoShowPressed = UI_CursesDemoShowPressed;
+    
     ret->UIHiscoreRenderBegin = UI_CursesHiscoreRenderBegin;
     ret->UIHiscoreGetName = UI_CursesHiscoreGetName;
 
