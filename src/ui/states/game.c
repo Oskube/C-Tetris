@@ -13,7 +13,7 @@ static int StateInit(UI_Functions* funs, void** data);
 static void StateCleanUp(UI_Functions* funs);
 
 static char* GenerateDemoName(UI_Functions* funs);
-static void ShowHelp(UI_Functions* funs, unsigned x, unsigned y);
+static void ShowHelp(UI_Functions* funs, unsigned x, unsigned y, bool showSave);
 
 //  Static vars used by this state
 static bool is_running = false;
@@ -66,7 +66,7 @@ void* StateGame(UI_Functions* funs, void** data) {
     unsigned x, y;
     ShowGameInfo(funs, gme, true, &x, &y);
 
-    ShowHelp(funs, x+18, y+7);
+    ShowHelp(funs, x+18, y+7, gme->info.status & GAME_STATUS_END);
     funs->UIGameRender(funs, gme);
 
     //  If quit requested
@@ -146,10 +146,13 @@ char* GenerateDemoName(UI_Functions* funs) {
     return ret;
 }
 
-void ShowHelp(UI_Functions* funs, unsigned x, unsigned y) {
+void ShowHelp(UI_Functions* funs, unsigned x, unsigned y, bool showSave) {
     funs->UITextRender(funs, x, y++, color_white, "Controls:");
     funs->UITextRender(funs, x, y++, color_green, "LEFT, RIGHT, DOWN - Move tetromino");
     funs->UITextRender(funs, x, y++, color_green, "SPACE             - Set tetromino");
     funs->UITextRender(funs, x, y++, color_green, "P                 - Pause");
-    funs->UITextRender(funs, x, y, color_green, "Q                 - QUIT");
+    funs->UITextRender(funs, x, y++, color_green, "Q                 - QUIT");
+
+    if (showSave)
+        funs->UITextRender(funs, x, y, color_red, "R                 - Save demo");
 }
