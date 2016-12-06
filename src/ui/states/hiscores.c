@@ -11,6 +11,7 @@ static int StateInit(UI_Functions* funs, void** data);
 static void CleanUp();
 
 static void DrawHiscores(UI_Functions* funs, hiscore_list_entry* list, unsigned len);
+static void ShowHelp(UI_Functions* funs, unsigned x, unsigned y);
 
 static bool is_running = false;
 static hiscore_list_entry scoreTable[HISCORE_LENGTH] = {0};
@@ -40,6 +41,7 @@ void* StateHiscores(UI_Functions* funs, void** data) {
         }
     } else {
         icount = funs->UIGetInput(funs);  // Fill input array
+        ShowHelp(funs, 30, 20);
     }
 
     for (unsigned iii = 0; iii < icount; iii++) { // Process all inputs
@@ -133,4 +135,8 @@ void DrawHiscores(UI_Functions* funs, hiscore_list_entry* list, unsigned len) {
         funs->UITextRender(funs, topx+41, topy, color_magenta, temp);
         funs->UITextRender(funs, topx+50, topy, color_yellow, ctime(&date));
     }
+}
+
+void ShowHelp(UI_Functions* funs, unsigned x, unsigned y) {
+    funs->UITextRender(funs, x, y, color_green, "(Q)uit   (R)estart");
 }

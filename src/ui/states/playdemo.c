@@ -13,6 +13,7 @@
 static int StateInit(UI_Functions* funs, void** data);
 static void StateCleanUp(UI_Functions* funs);
 
+static void ShowHelp(UI_Functions* funs, unsigned x, unsigned y);
 /**
     \brief Wrapper function to return demo time
 */
@@ -114,6 +115,8 @@ void* StatePlayDemo(UI_Functions* funs, void** data) {
 
     if (showKeys) funs->UIDemoShowPressed(funs, infox+20, infoy+12, NULL); // Render empty grid if nothing happens
 
+    ShowHelp(funs, infox+18, infoy+7);
+
     funs->UITextRender(funs, infox, infoy+17, color_red, infoName);
     funs->UITextRender(funs, infox, infoy+18, color_red, infoInstr);
     funs->UITextRender(funs, infox, infoy+19, color_red, infoTScal);
@@ -175,4 +178,11 @@ void StateCleanUp(UI_Functions* funs) {
 
 unsigned GetDemoTime() {
     return timeDemo;
+}
+
+void ShowHelp(UI_Functions* funs, unsigned x, unsigned y) {
+    funs->UITextRender(funs, x, y++, color_white, "Controls:");
+    funs->UITextRender(funs, x, y++, color_green, "LEFT, RIGHT - Change time scale");
+    funs->UITextRender(funs, x, y++, color_green, "P           - Set time scale to 0");
+    funs->UITextRender(funs, x, y, color_green, "Q           - QUIT");
 }
