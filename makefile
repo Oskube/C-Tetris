@@ -1,7 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
-LIBS = -lncurses
-SDL = `sdl2-config --cflags --libs`
+CFLAGS = -Wall -Wextra
 
 SRC = src
 ODIR = obj
@@ -13,13 +11,13 @@ CORE = game_randomisers.o \
 	   demo.o
 CORE := $(addprefix $(ODIR)/core/, $(CORE))
 
-UICOMMON =  states/hiscores.o \
-			states/playdemo.o \
-			states/game.o \
-			states/common.o \
-			ui.o \
-			os/linux_funs.o
-UICOMMON := $(addprefix $(ODIR)/ui/, $(UICOMMON))
+UI =  states/hiscores.o \
+	  states/playdemo.o \
+	  states/game.o \
+	  states/common.o \
+	  ui.o \
+	  os/linux_funs.o
+UI := $(addprefix $(ODIR)/ui/, $(UI))
 
 CURSES = init.o \
 		 functions.o
@@ -28,26 +26,41 @@ CURSES := $(addprefix $(ODIR)/ui/curses/, $(CURSES))
 UISDL = init.o \
 		functions.o
 UISDL := $(addprefix $(ODIR)/ui/sdl/, $(UISDL))
-LIBS += $(SDL)
 
 
 BUILD = build
 OUT = $(BUILD)/tetr
 
-all: dir $(OUT)
+.PHONY: all release debug clean dir only-curses
+
+release: all
+
+debug: CFLAGS += -g
+debug: all
+
+.SECONDEXPANSION:
+all: UI += $(CURSES) $(UISDL)
+all: LIBS += -lncurses `sdl2-config --cflags --libs`
+all: dir $$(UI) $(OUT)
+
+only-curses: UI += $(CURSES)
+only-curses: LIBS += -lncurses
+only-curses: CFLAGS += -D _NO_SDL
+only-curses: dir $$(UI) $(OUT)
 
 dir:
 	-mkdir -p build
 	-mkdir -p $(ODIR)
 	-mkdir -p $(ODIR)/core
-	-mkdir -p $(ODIR)/ui/curses $(ODIR)/ui/os $(ODIR)/ui/states $(ODIR)/ui/sdl
+	-mkdir -p $(ODIR)/ui/os $(ODIR)/ui/states
+	-mkdir -p $(ODIR)/ui/curses $(ODIR)/ui/sdl
 	cp ./res/* ./build/
 
-$(OUT): $(SRC)/main.c $(CORE) $(UICOMMON) $(CURSES) $(UISDL)
-	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+$(OUT): $(SRC)/main.c $(CORE)
+	$(CC) $(CFLAGS) $^ $(UI) -o $@ $(LIBS)
 
 $(ODIR)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -c $^ -o $@  `sdl2-config --cflags`
+	$(CC) $(CFLAGS) -c $^ -o $@ $(LIBS)
 
 clean:
 	-rm -rf $(ODIR)

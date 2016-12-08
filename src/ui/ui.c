@@ -75,8 +75,10 @@ int MainProgram(int argc, char** argv) {
         else if (!strcmp(argv[i], "--UI")) {
             if (argc <= ++i) {
                 invalidArgs = true;
+#ifndef _NO_SDL
             } else if (!strcmp(argv[i], "SDL")) {
                 UIInitFun = UI_SDLInit;
+#endif //_NO_SDL
             } else if (!strcmp(argv[i], "curses")) {
                 UIInitFun = CursesInit;
             } else {
@@ -95,7 +97,10 @@ int MainProgram(int argc, char** argv) {
         //  In case of invalid arguments, print help and quit
         if (invalidArgs) {
             fprintf(stderr, "Check arguments!\n");
-            printf("%s%s%s", generalHelp, CursesGetHelp(), UI_SDLGetHelp());
+            printf("%s%s", generalHelp, CursesGetHelp());
+#ifndef _NO_SDL
+            printf("%s", UI_SDLGetHelp());
+#endif //_NO_SDL
             CurrentState = NULL;
             break;
         }
