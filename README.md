@@ -19,7 +19,7 @@ Some of the already implemented features:
   - SDL
   - Curses
 
-Screenshots:  
+##Screenshots
 ![Screenshot](./screenshots-anim.gif)
 
 ## Compiling
