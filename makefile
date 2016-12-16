@@ -33,6 +33,7 @@ OUT = $(BUILD)/tetr
 
 .PHONY: all release debug clean dir only-curses
 
+release: CFLAGS += -O2
 release: all
 
 debug: CFLAGS += -g
@@ -45,7 +46,7 @@ all: dir $$(UI) $(OUT)
 
 only-curses: UI += $(CURSES)
 only-curses: LIBS += -lncurses
-only-curses: CFLAGS += -D _NO_SDL
+only-curses: CFLAGS += -O2 -D _NO_SDL
 only-curses: dir $$(UI) $(OUT)
 
 dir:

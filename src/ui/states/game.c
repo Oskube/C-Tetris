@@ -59,7 +59,7 @@ void* StateGame(UI_Functions* funs, void** data) {
     }
 
     //  Print msg if is demo saved
-    if (textDemo[0] != '\0') funs->UITextRender(funs, 0, 0, color_red, textDemo);
+    if (alreadySaved) funs->UITextRender(funs, 0, 0, color_red, textDemo);
 
     GameUpdate(gme);
 
