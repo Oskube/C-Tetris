@@ -149,6 +149,7 @@ char* GenerateDemoName(UI_Functions* funs) {
 void ShowHelp(UI_Functions* funs, unsigned x, unsigned y, bool showSave) {
     funs->UITextRender(funs, x, y++, color_white, "Controls:");
     funs->UITextRender(funs, x, y++, color_green, "LEFT, RIGHT, DOWN - Move tetromino");
+    funs->UITextRender(funs, x, y++, color_green, "UP                - Rotate");
     funs->UITextRender(funs, x, y++, color_green, "SPACE             - Set tetromino");
     funs->UITextRender(funs, x, y++, color_green, "P                 - Pause");
     funs->UITextRender(funs, x, y++, color_green, "Q                 - QUIT");
